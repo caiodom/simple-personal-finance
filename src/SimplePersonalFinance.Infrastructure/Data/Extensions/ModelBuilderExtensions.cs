@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SimplePersonalFinance.Core.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 
 namespace SimplePersonalFinance.Infrastructure.Data.Extensions;
 public static class ModelBuilderExtensions

@@ -1,4 +1,4 @@
-﻿namespace SimplePersonalFinance.Core.Entities;
+﻿namespace SimplePersonalFinance.Core.Domain.Entities;
 
 public class AccountType
 {

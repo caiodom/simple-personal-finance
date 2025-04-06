@@ -1,4 +1,4 @@
-﻿namespace SimplePersonalFinance.Core.Entities.Base;
+﻿namespace SimplePersonalFinance.Core.Domain.Entities.Base;
 
 public abstract class Entity
 {

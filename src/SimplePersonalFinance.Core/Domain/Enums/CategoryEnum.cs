@@ -1,4 +1,4 @@
-﻿namespace SimplePersonalFinance.Core.Enums;
+﻿namespace SimplePersonalFinance.Core.Domain.Enums;
 
 public enum CategoryEnum
 {

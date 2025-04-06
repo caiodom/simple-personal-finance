@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SimplePersonalFinance.Core.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 
 namespace SimplePersonalFinance.Infrastructure.Data.Mapping;
 

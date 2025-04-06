@@ -1,6 +1,6 @@
-﻿using SimplePersonalFinance.Core.Entities.Base;
+﻿using SimplePersonalFinance.Core.Domain.Entities.Base;
 
-namespace SimplePersonalFinance.Core.Entities;
+namespace SimplePersonalFinance.Core.Domain.Entities;
 
 public class User:Entity
 {

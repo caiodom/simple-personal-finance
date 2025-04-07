@@ -28,8 +28,9 @@ services:
     environment:
       - ACCEPT_EULA=Y
     ports:
-      - 5431:5431
-      - 8081:80             
+      - 5341:80
+    networks:
+      - app-network                     
 
 volumes:
   spf-db-data:

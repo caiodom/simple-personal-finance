@@ -12,7 +12,7 @@ public class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : IExcepti
         var details = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,
-            Title = "Server error"
+            Title = "Server error: "+ exception.Message
         };
 
         logger.LogError(exception, "An error occurred while processing the request.");

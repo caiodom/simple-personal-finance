@@ -27,22 +27,45 @@ public static class ConfigurationExtensions
     }
     public static WebApplicationBuilder AddLog(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, logger) =>
-        {
-            logger.ReadFrom.Configuration(context.Configuration);
-        });
+        Log.Logger = new LoggerConfiguration()
+         .ReadFrom.Configuration(builder.Configuration)
+         .CreateLogger();
+
+        builder.Host.UseSerilog();
 
         return builder;
     }
+
+
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
                 .AddExceptionHandler<ApiExceptionHandler>()
                 .AddProblemDetails()
                 .AddApplicationConfigurations()
+                .AddCorsConfiguration(configuration)
                 .AddEndpointsApiExplorer()
                 .AddSwaggerConfigurations()
                 .AddControllers();
+
+        return services;
+    }
+
+    private static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy",
+                 builder =>
+                 {
+                     builder
+                            .WithOrigins(configuration.GetSection("AllowedHosts").Value)
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
+                 });
+        });
 
         return services;
     }
@@ -80,6 +103,7 @@ public static class ConfigurationExtensions
 
         return services;
     }
+
     public static WebApplication UseConfigurations(this WebApplication app)
     {
         if (app.Environment.IsDevelopment())
@@ -91,6 +115,8 @@ public static class ConfigurationExtensions
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
 
+        app.UseCors("CorsPolicy");
+        app.UseSerilogRequestLogging(); // This will log HTTP requests
         app.UseAuthorization();
 
         app.MapControllers();

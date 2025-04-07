@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.Application.Commands.CreateUser;
+using SimplePersonalFinance.Application.Commands.LoginUser;
 using SimplePersonalFinance.Application.Queries.GetUser;
 
 namespace SimplePersonalFinance.API.Controllers;
@@ -30,5 +31,17 @@ public class UserController(IMediator mediator):ControllerBase
         var result = await mediator.Send(command);
 
         return CreatedAtAction(nameof(GetById), new { id = result }, command);
+    }
+
+    [HttpPut("login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
+    {
+        var loginUserviewModel = await mediator.Send(command);
+
+        if (loginUserviewModel == null)
+            return BadRequest();
+
+        return Ok(loginUserviewModel);
     }
 }

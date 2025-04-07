@@ -25,9 +25,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUs
 
         // Se nao existir, erro no login
         if (user == null)
-        {
             return null;
-        }
 
         // Se existir, gero o token usando os dados do usuário
         var token = _authService.GenerateJwtToken(user.Email, user.Role);

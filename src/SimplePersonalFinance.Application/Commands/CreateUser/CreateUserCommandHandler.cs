@@ -9,6 +9,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 {
     private readonly IAuthService _authService;
     private readonly IUnitOfWork _uow;
+    private const string DEFAULT_ROLE = "client";
     public CreateUserCommandHandler(IAuthService authService, IUnitOfWork uow)
     {
         _authService = authService;
@@ -24,7 +25,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 
         var passwordHash = _authService.ComputeSha256Hash(request.Password);
 
-        var user = new User(request.Name, request.Email, request.BirthDate, passwordHash);
+        var user = new User(request.Name, request.Email, request.BirthDate, passwordHash, DEFAULT_ROLE);
 
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();

@@ -17,4 +17,12 @@ public class UserRepository(AppDbContext context) : IUserRepository
     public async Task<bool> CheckEmailAsync(string email)
         => await context.Users.AnyAsync(x => x.Email == email);
 
+
+    public async Task<User> GetUserByEmailAndPasswordAsync(string email, string passwordHash)
+    {
+        return await context
+        .Users
+            .SingleOrDefaultAsync(u => u.Email == email && u.PasswordHash == passwordHash);
+    }
+
 }

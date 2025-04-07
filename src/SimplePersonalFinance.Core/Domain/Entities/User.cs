@@ -9,12 +9,15 @@ public class User:Entity
     public string PasswordHash { get; private set; }
     public DateTime BirthdayDate { get; set; }
 
-    public User(string name, string email,DateTime birthdayDate, string passwordHash)
+    public string Role { get; private set; }
+
+    public User(string name, string email,DateTime birthdayDate, string passwordHash,string role)
     {
         Name=name;
         Email=email;
         PasswordHash=passwordHash;
         BirthdayDate = birthdayDate;
+        Role = role;
     }
 
     // Constructor for EF Core

@@ -1,0 +1,16 @@
+﻿using MediatR;
+using SimplePersonalFinance.Application.ViewModels;
+
+namespace SimplePersonalFinance.Application.Queries.GetUser
+{
+    public class GetUserQuery : IRequest<UserViewModel>
+    {
+        public Guid Id { get; private set; }
+        public GetUserQuery(Guid id)
+        {
+            Id = id;
+        }
+
+       
+    }
+}

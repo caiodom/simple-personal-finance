@@ -12,4 +12,6 @@ public class TransactionType
         Name = name;
         IsCredit = isCredit;
     }
+    // Constructor for EF Core
+    protected TransactionType() { }
 }

@@ -21,6 +21,9 @@ public class Budget : Entity
         Year = year;
     }
 
+    // Constructor for EF Core
+    protected Budget() { }
+
     //EF Rel
     public Category Category { get; set; }
     public User User { get; set; }

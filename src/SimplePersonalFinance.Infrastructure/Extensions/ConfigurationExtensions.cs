@@ -65,5 +65,7 @@ namespace SimplePersonalFinance.Infrastructure.Extensions
 
             return services;
         }
+
+
     }
 }

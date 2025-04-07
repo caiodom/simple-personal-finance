@@ -11,6 +11,9 @@ public class AccountType
         Name = name;
     }
 
+    // Constructor for EF Core
+    protected AccountType() { }
+
     //Ef rels
     public ICollection<Account> Accounts { get; }
 }

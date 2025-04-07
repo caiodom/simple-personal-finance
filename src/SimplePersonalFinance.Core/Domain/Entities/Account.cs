@@ -21,6 +21,8 @@ public class Account:Entity
         CurrentBalance = currentBalance;
     }
 
+    // Constructor for EF Core
+    protected Account() { }
 
 
 

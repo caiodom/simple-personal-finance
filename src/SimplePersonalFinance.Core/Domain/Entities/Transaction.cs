@@ -23,7 +23,8 @@ public class Transaction:Entity
         Date = date;
     }
 
-
+    // Constructor for EF Core
+    protected Transaction() { }
 
 
     //Ef Rel

@@ -11,6 +11,9 @@ public class Category
         Name=name;
     }
 
+    // Constructor for EF Core
+    protected Category() { }
+
     //Ef Rel
     public ICollection<Transaction> Transactions { get; }
     public ICollection<Budget> Budgets { get; }

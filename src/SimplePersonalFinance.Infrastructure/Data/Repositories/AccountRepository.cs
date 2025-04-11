@@ -47,7 +47,7 @@ public class AccountRepository(AppDbContext context) : IAccountRepository
     public async Task<Account?> GetAccountWithSpecificTransactionAsync(Guid id, Guid transactionId)
     {
         return await context.Accounts
-                            .Include(x=>x.Transactions.Where(x => x.Id == transactionId))
+                            .Include(x=>x.Transactions.Where(x => x.Id == transactionId && x.IsActive))
                             .FirstOrDefaultAsync(x => x.Id == id && x.IsActive); 
     }
 

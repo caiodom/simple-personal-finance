@@ -52,6 +52,17 @@ public class Account:Entity
         UpdateCurrentBalance(amountDifference, transactionType != TransactionTypeEnum.EXPENSE);
     }
 
+    public void DeleteTransaction(Guid transactionId)
+    {
+        var transaction = _transactions.FirstOrDefault(t => t.Id == transactionId);
+        if (transaction == null)
+            throw new DomainException($"Transaction with id {transactionId} not found in this account");
+
+
+        transaction.SetAsDeleted();
+        UpdateCurrentBalance(transaction.Amount, transaction.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE);
+    }
+
     public void UpdateCurrentBalance(decimal amount, bool isAddition)
     {
         if (isAddition)

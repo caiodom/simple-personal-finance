@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.Application.Commands.CreateAccount;
 using SimplePersonalFinance.Application.Commands.CreateTransaction;
 using SimplePersonalFinance.Application.Commands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.RemoveTransaction;
 using SimplePersonalFinance.Application.Queries.GetAccount;
 using SimplePersonalFinance.Application.Queries.GetAccountsByUserId;
 using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
@@ -75,5 +76,15 @@ public class AccountController(IMediator mediator) : ControllerBase
             return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetTransactions), new { accountId = command.AccountId }, command);
+    }
+
+    [HttpDelete("{accountId}/transactions/{transactionId}")]
+    public async Task<IActionResult> DeleteTransaction(Guid accountId, Guid transactionId)
+    {
+        var result = await mediator.Send(new DeleteAccountTransactionCommand(transactionId, accountId));
+        if (!result.IsSuccess)
+            return BadRequest(result.Message);
+
+        return NoContent();
     }
 }

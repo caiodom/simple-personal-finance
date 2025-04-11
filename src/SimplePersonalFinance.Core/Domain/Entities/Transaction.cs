@@ -22,15 +22,15 @@ public class Transaction:Entity
         Amount = amount;
         Date = date;
     }
-
-    // Método interno para atualizar detalhes da transação
-    internal void UpdateDetails(decimal newAmount, string newDescription, CategoryEnum newCategory, TransactionTypeEnum newTransactionType)
+    public void UpdateDetails(decimal newAmount, string newDescription, CategoryEnum newCategory, TransactionTypeEnum newTransactionType)
     {
         CategoryId = (int)newCategory;
         TransactionTypeId = (int)newTransactionType;
         Amount = newAmount;
         Description = newDescription;
     }
+
+
 
     // Constructor for EF Core
     protected Transaction() { }

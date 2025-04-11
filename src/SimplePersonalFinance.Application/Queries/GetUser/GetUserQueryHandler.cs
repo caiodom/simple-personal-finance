@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Application.ViewModels.Users;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Queries.GetUser;

@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Application.ViewModels.Users;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Services;
 
@@ -17,17 +17,13 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUs
 
     public async Task<LoginUserViewModel> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        // Utilizar o mesmo algoritmo para criar o hash dessa senha
+
         var passwordHash = _authService.ComputeSha256Hash(request.Password);
 
-        // Buscar no meu banco de dados um User que tenha meu e-mail e minha senha em formato hash
-        var user = await _uow.Users.GetUserByEmailAndPasswordAsync(request.Email, passwordHash);
+        var user = await _uow.Users.GetUserByEmailAndPasswordAsync(request.Email, passwordHash)
+                        ?? throw new InvalidOperationException("Invalid email or password");
 
-        // Se nao existir, erro no login
-        if (user == null)
-            return null;
 
-        // Se existir, gero o token usando os dados do usuário
         var token = _authService.GenerateJwtToken(user.Email, user.Role);
 
         return new LoginUserViewModel(user.Email, token);

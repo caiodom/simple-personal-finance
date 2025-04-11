@@ -1,4 +1,4 @@
-﻿namespace SimplePersonalFinance.Application.ViewModels;
+﻿namespace SimplePersonalFinance.Application.ViewModels.Users;
 
 public class UserViewModel
 {

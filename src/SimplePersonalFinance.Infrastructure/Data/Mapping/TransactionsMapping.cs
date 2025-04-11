@@ -23,11 +23,17 @@ public class TransactionsMapping : IEntityTypeConfiguration<Transaction>
         builder.HasOne(t => t.Account)
             .WithMany(a => a.Transactions)
             .HasForeignKey(t => t.AccountId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired();
+       
 
         builder.HasOne(t => t.Category)
             .WithMany(c => c.Transactions)
             .HasForeignKey(t => t.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(t=>t.TransactionType)
+            .WithMany(a => a.Transactions)
+            .HasForeignKey(t => t.TransactionTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
 

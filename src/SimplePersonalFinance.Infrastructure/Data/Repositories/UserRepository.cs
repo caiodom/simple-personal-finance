@@ -11,18 +11,19 @@ public class UserRepository(AppDbContext context) : IUserRepository
                 => await  context.Users.AddAsync(user);
 
     public async Task<User> GetByIdAsync(Guid id)
-                => await context.Users.SingleOrDefaultAsync(x => x.Id == id);
+                => await context.Users.SingleOrDefaultAsync(x => x.Id == id && x.IsActive);
     
 
     public async Task<bool> CheckEmailAsync(string email)
-        => await context.Users.AnyAsync(x => x.Email == email);
+        => await context.Users.AnyAsync(x => x.Email == email && x.IsActive);
 
 
     public async Task<User> GetUserByEmailAndPasswordAsync(string email, string passwordHash)
     {
-        return await context
-        .Users
-            .SingleOrDefaultAsync(u => u.Email == email && u.PasswordHash == passwordHash);
+        return await context.Users
+                            .SingleOrDefaultAsync(u => u.Email == email && 
+                                                       u.PasswordHash == passwordHash && 
+                                                       u.IsActive);
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
 using SimplePersonalFinance.Application.Commands.CreateUser;
 using SimplePersonalFinance.Application.Validators;
@@ -23,7 +24,8 @@ public static class ConfigurationExtensions
 
     public static IServiceCollection AddValidations(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<CreateUserCommandValidator>();
+        services.AddFluentValidationAutoValidation()
+                .AddValidatorsFromAssemblyContaining<CreateUserCommandValidator>();
         return services;
     }
 }

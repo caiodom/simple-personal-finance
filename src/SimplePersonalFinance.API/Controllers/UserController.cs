@@ -30,8 +30,13 @@ public class UserController(IMediator mediator):ControllerBase
     {
         var result = await mediator.Send(command);
 
+        if (result == Guid.Empty)
+            return BadRequest("Failed to create user");
+
         return CreatedAtAction(nameof(GetById), new { id = result }, command);
     }
+
+
 
     [HttpPut("login")]
     [AllowAnonymous]

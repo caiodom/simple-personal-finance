@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Application.ViewModels.Users;
 
 namespace SimplePersonalFinance.Application.Commands.LoginUser;
 

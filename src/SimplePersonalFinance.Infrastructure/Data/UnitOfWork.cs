@@ -11,15 +11,16 @@ namespace SimplePersonalFinance.Infrastructure.Data
         public IAccountRepository Accounts { get; }
         public IUserRepository Users { get; }
         public IBudgetRepository Budgets { get; }
+        public ITransactionReadRepository Transactions { get; }
 
         private bool _disposed;
-        private IDbContextTransaction _transaction;
+        private IDbContextTransaction? _transaction;
         private readonly AppDbContext _context;
 
         public UnitOfWork(IUserRepository userRepository,
                           IBudgetRepository budgetRepository,
                           IAccountRepository accountRepository,
-                           AppDbContext context)
+                          AppDbContext context)
         {
             _context = context;
             Users = userRepository;

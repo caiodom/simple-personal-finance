@@ -36,7 +36,7 @@ public class Account:AggregateRoot
 
         UpdateCurrentBalance(amount, transactionType != TransactionTypeEnum.EXPENSE);
 
-        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, category));
+        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id,UserId, category));
 
         return transaction;
     }
@@ -54,7 +54,7 @@ public class Account:AggregateRoot
         transaction.UpdateDetails(newAmount, newDescription,category,transactionType);
         UpdateCurrentBalance(amountDifference, transactionType != TransactionTypeEnum.EXPENSE);
 
-        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, category));
+        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id,UserId, category));
     }
 
     public void DeleteTransaction(Guid transactionId)

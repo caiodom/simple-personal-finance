@@ -31,6 +31,8 @@ namespace SimplePersonalFinance.Infrastructure.Extensions
             services.AddScoped<IAccountRepository,AccountRepository>();
             services.AddScoped<ITransactionReadRepository, TransactionReadRepository>();
 
+            services.AddScoped<IDomainEventDispatcher, MediatorDomainEventDispatcher>();
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

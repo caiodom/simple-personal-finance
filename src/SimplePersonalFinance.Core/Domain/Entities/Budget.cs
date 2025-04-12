@@ -3,7 +3,7 @@ using SimplePersonalFinance.Core.Domain.Enums;
 
 namespace SimplePersonalFinance.Core.Domain.Entities;
 
-public class Budget : Entity
+public class Budget : AggregateRoot
 {
     public Guid UserId { get; private set; }
     public int CategoryId { get; private set; }

@@ -1,10 +1,11 @@
 ﻿using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Events;
 using SimplePersonalFinance.Core.Domain.Exceptions;
 
 namespace SimplePersonalFinance.Core.Domain.Entities;
 
-public class Account:Entity
+public class Account:AggregateRoot
 {
     public Guid UserId { get; private set; }
     public int AccountTypeId { get; private set; }
@@ -35,6 +36,8 @@ public class Account:Entity
 
         UpdateCurrentBalance(amount, transactionType != TransactionTypeEnum.EXPENSE);
 
+        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, category));
+
         return transaction;
     }
 
@@ -50,6 +53,8 @@ public class Account:Entity
         decimal amountDifference = newAmount - transaction.Amount;
         transaction.UpdateDetails(newAmount, newDescription,category,transactionType);
         UpdateCurrentBalance(amountDifference, transactionType != TransactionTypeEnum.EXPENSE);
+
+        AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, category));
     }
 
     public void DeleteTransaction(Guid transactionId)

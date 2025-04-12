@@ -20,7 +20,6 @@ public class AccountController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await mediator.Send(new GetAccountByIdQuery(id));
-
         if (!result.IsSuccess)
             return BadRequest(result.Message);
 
@@ -55,6 +54,7 @@ public class AccountController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetAccountTransactionsQuery(accountId));
         if (!result.IsSuccess)
             return BadRequest(result.Message);
+
         return Ok(result);
     }
 

@@ -8,7 +8,7 @@ public class GetBudgetByIdQueryHandler(IUnitOfWork uow):IRequestHandler<GetBudge
 {
     public async Task<ResultViewModel<BudgetViewModel>> Handle(GetBudgetByIdQuery request, CancellationToken cancellationToken)
     {
-        var budget = await uow.Budgets.GetById(request.Id);
+        var budget = await uow.Budgets.GetByIdAsync(request.Id);
 
         if (budget == null)
             return ResultViewModel<BudgetViewModel>.Error("Budget not found");

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SimplePersonalFinance.Core\SimplePersonalFinance.Core.csproj" />
+    <ProjectReference Include="..\SimplePersonalFinance.Shared\SimplePersonalFinance.Shared.csproj" />
   </ItemGroup>
 
 </Project>

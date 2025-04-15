@@ -10,7 +10,7 @@ public class BudgetRepository(AppDbContext context):IBudgetRepository
     public async Task AddAsync(Budget budget)
          => await context.Budgets.AddAsync(budget);
 
-    public async Task<Budget?> GetById(Guid id)
+    public async Task<Budget?> GetByIdAsync(Guid id)
     {
         return await context.Budgets
             .Include(x => x.Category)

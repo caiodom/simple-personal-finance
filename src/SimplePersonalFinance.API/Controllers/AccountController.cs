@@ -12,7 +12,7 @@ using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
 namespace SimplePersonalFinance.API.Controllers;
 
 [Route("api/account")]
-//[Authorize]
+[Authorize]
 public class AccountController(IMediator mediator) : ControllerBase
 {
 

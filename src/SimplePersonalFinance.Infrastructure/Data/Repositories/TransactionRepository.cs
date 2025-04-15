@@ -6,19 +6,19 @@ using SimplePersonalFinance.Infrastructure.Data.Context;
 
 namespace SimplePersonalFinance.Infrastructure.Data.Repositories;
 
-public class TransactionReadRepository(AppDbContext context) : ITransactionReadRepository
+public class TransactionRepository(AppDbContext context) : ITransactionRepository
 {
-    public Task<Transaction?> GetByIdAsync(Guid id)
+    public async Task<Transaction?> GetByIdAsync(Guid id)
     {
-        return context.Transactions
+        return await context.Transactions
             .Include(x => x.Category)
             .Include(x => x.TransactionType)
             .SingleOrDefaultAsync(x => x.Id == id && x.IsActive);
     }
 
-    public Task<List<Transaction>> GetCategoryExpensesByAccountAndPeriod(Guid accountId,CategoryEnum category, DateTime period)
+    public async Task<List<Transaction>> GetCategoryExpensesByAccountAndPeriod(Guid accountId,CategoryEnum category, DateTime period)
     {
-        return context.Transactions
+        return await context.Transactions
             .Where(x => x.AccountId == accountId && 
                         x.Date.Month == period.Month && 
                         x.Date.Year == period.Year && 
@@ -26,5 +26,15 @@ public class TransactionReadRepository(AppDbContext context) : ITransactionReadR
                         x.CategoryId == (int)category &&
                         x.IsActive)
             .ToListAsync();
+    }
+
+    public IQueryable<Transaction> GetAllByAccountId(Guid accountId)
+    {
+        return context.Transactions
+                        .Include(x => x.TransactionType)
+                        .Include(x => x.Category)
+                        .Where(x => x.AccountId == accountId && x.IsActive)
+                        .AsNoTracking();
+
     }
 }

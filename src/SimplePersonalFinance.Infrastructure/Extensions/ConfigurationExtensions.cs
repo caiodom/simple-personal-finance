@@ -29,7 +29,7 @@ namespace SimplePersonalFinance.Infrastructure.Extensions
             services.AddScoped<IBudgetRepository,BudgetRepository>();
             services.AddScoped<IUserRepository,UserRepository>();
             services.AddScoped<IAccountRepository,AccountRepository>();
-            services.AddScoped<ITransactionReadRepository, TransactionReadRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
 
             services.AddScoped<IDomainEventDispatcher, MediatorDomainEventDispatcher>();
 

@@ -6,5 +6,5 @@ public interface IBudgetRepository
 {
     Task<Budget?> GetByUserAndCategoryAsync(Guid userId, int categoryId);
     Task AddAsync(Budget budget);
-    Task<Budget?> GetById(Guid id);
+    Task<Budget?> GetByIdAsync(Guid id);
 }

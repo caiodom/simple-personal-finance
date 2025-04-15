@@ -9,7 +9,7 @@ namespace SimplePersonalFinance.Core.Interfaces.Data
         IBudgetRepository Budgets { get; }
         IAccountRepository Accounts { get; }
 
-        ITransactionReadRepository Transactions { get; }
+        ITransactionRepository Transactions { get; }
 
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Appli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Infrastructure", "src\SimplePersonalFinance.Infrastructure\SimplePersonalFinance.Infrastructure.csproj", "{1EFBECBD-0A22-AF0F-29BA-4C77E467C6A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Shared", "src\SimplePersonalFinance.Shared\SimplePersonalFinance.Shared.csproj", "{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1EFBECBD-0A22-AF0F-29BA-4C77E467C6A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EFBECBD-0A22-AF0F-29BA-4C77E467C6A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EFBECBD-0A22-AF0F-29BA-4C77E467C6A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,7 +11,7 @@ namespace SimplePersonalFinance.Infrastructure.Data
         public IAccountRepository Accounts { get; }
         public IUserRepository Users { get; }
         public IBudgetRepository Budgets { get; }
-        public ITransactionReadRepository Transactions { get; }
+        public ITransactionRepository Transactions { get; }
 
         private bool _disposed;
         private IDbContextTransaction? _transaction;
@@ -20,12 +20,14 @@ namespace SimplePersonalFinance.Infrastructure.Data
         public UnitOfWork(IUserRepository userRepository,
                           IBudgetRepository budgetRepository,
                           IAccountRepository accountRepository,
+                          ITransactionRepository transactionRepository,
                           AppDbContext context)
         {
             _context = context;
             Users = userRepository;
             Budgets = budgetRepository;
             Accounts = accountRepository;
+            Transactions = transactionRepository;
         }
 
 

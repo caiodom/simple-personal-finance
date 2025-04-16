@@ -2,6 +2,8 @@
 using Serilog;
 using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.Application.Extensions;
+using SimplePersonalFinance.Infrastructure.Data.Context;
+using SimplePersonalFinance.Infrastructure.Data.Extensions;
 using SimplePersonalFinance.Infrastructure.Extensions;
 
 namespace SimplePersonalFinance.API.Extensions;
@@ -106,7 +108,10 @@ public static class ConfigurationExtensions
 
     public static WebApplication UseConfigurations(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+
+        Console.WriteLine(app.Environment.EnvironmentName);
+
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName=="Docker")
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -120,6 +125,8 @@ public static class ConfigurationExtensions
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.Services.ApplyMigration(app.Environment );
 
         return app;
     }

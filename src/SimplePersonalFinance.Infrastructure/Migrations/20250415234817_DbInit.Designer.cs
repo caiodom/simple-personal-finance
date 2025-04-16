@@ -12,8 +12,8 @@ using SimplePersonalFinance.Infrastructure.Data.Context;
 namespace SimplePersonalFinance.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250408151421_IncludeTransctionTypeRelation")]
-    partial class IncludeTransctionTypeRelation
+    [Migration("20250415234817_DbInit")]
+    partial class DbInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -341,7 +341,7 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                     b.HasOne("SimplePersonalFinance.Core.Domain.Entities.Account", "Account")
                         .WithMany("Transactions")
                         .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SimplePersonalFinance.Core.Domain.Entities.Category", "Category")

@@ -1,29 +1,30 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
+# Base image for runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
 
 
-# This stage is used to build the service project
+# Base image for building the application
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/SimplePersonalFinance.API/SimplePersonalFinance.API.csproj", "src/SimplePersonalFinance.API/"]
-RUN dotnet restore "./src/SimplePersonalFinance.API/SimplePersonalFinance.API.csproj"
+
+
+# Copy the project files and restore dependencies
+COPY ["SimplePersonalFinance.API/SimplePersonalFinance.API.csproj", "src/SimplePersonalFinance.API/"]
+COPY ["SimplePersonalFinance.Application/SimplePersonalFinance.Application.csproj", "src/SimplePersonalFinance.Application/"]
+COPY ["SimplePersonalFinance.Infrastructure/SimplePersonalFinance.Infrastructure.csproj", "src/SimplePersonalFinance.Infrastructure/"]
+COPY ["SimplePersonalFinance.Core/SimplePersonalFinance.Core.csproj", "src/SimplePersonalFinance.Core/"]
+COPY ["SimplePersonalFinance.Shared/SimplePersonalFinance.Shared.csproj", "src/SimplePersonalFinance.Shared/"]
+RUN dotnet restore "src/SimplePersonalFinance.API/SimplePersonalFinance.API.csproj"
 COPY . .
-WORKDIR "/src/src/SimplePersonalFinance.API"
-RUN dotnet build "./SimplePersonalFinance.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/SimplePersonalFinance.API"
+RUN dotnet build "SimplePersonalFinance.API.csproj" -c Release -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+# Publish the application
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./SimplePersonalFinance.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "SimplePersonalFinance.API.csproj" -c Release -o /app/publish /p:UseAppHost=false/app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+# Final stage: runtime image
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .

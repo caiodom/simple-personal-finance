@@ -1,11 +1,12 @@
 ﻿using MediatR;
+using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Services;
 
 namespace SimplePersonalFinance.Application.Commands.CreateUser;
 
-public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
+public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ResultViewModel<Guid>>
 {
     private readonly IAuthService _authService;
     private readonly IUnitOfWork _uow;
@@ -16,12 +17,12 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         _uow = uow;
     }
 
-    public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<ResultViewModel<Guid>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         var emailExists = await _uow.Users.CheckEmailAsync(request.Email);
 
         if (emailExists)
-            throw new InvalidOperationException("Email already exists");
+            return ResultViewModel<Guid>.Error("Email already exists");
 
         var passwordHash = _authService.ComputeSha256Hash(request.Password);
 
@@ -30,7 +31,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();
 
-        return user.Id;
+        return ResultViewModel<Guid>.Success(user.Id);
     }
 }
 

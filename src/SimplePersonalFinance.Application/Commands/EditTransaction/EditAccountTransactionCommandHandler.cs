@@ -4,7 +4,7 @@ using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Commands.EditTransaction;
 
-internal class EditAccountTransactionCommandHandler(IUnitOfWork uow) : IRequestHandler<EditAccountTransactionCommand, ResultViewModel<Guid>>
+public class EditAccountTransactionCommandHandler(IUnitOfWork uow) : IRequestHandler<EditAccountTransactionCommand, ResultViewModel<Guid>>
 {
     public async Task<ResultViewModel<Guid>> Handle(EditAccountTransactionCommand request, CancellationToken cancellationToken)
     {

@@ -13,7 +13,7 @@ public class EditBudgetCommandHandler(IUnitOfWork uow) : IRequestHandler<EditBud
         if (budget == null)
             return ResultViewModel<Guid>.Error("Budget not found");
 
-        budget.UpdateBudget(request.LimitAmount,request.Year,request.Month);
+        budget.UpdateBudget(request.LimitAmount,request.Month, request.Year);
 
         await uow.SaveChangesAsync();
         return ResultViewModel<Guid>.Success(request.Id);

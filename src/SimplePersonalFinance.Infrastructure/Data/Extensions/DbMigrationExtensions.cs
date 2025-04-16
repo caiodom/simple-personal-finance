@@ -9,6 +9,9 @@ namespace SimplePersonalFinance.Infrastructure.Data.Extensions;
 
 public static class DbMigrationExtensions
 {
+    /// <summary>
+    /// Generate migrations before running this method
+    /// </summary>
     public static void ApplyMigration(this IServiceProvider serviceProvider, IWebHostEnvironment env)
     {
         // Create a new scope for resolving services

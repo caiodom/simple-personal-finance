@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Infra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Shared", "src\SimplePersonalFinance.Shared\SimplePersonalFinance.Shared.csproj", "{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePersonalFinance.Test", "src\SimplePersonalFinance.Test\SimplePersonalFinance.Test.csproj", "{251420FD-86F8-40E1-8314-2A33C1364093}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4109E02C-CABA-44CD-9EEA-C1D7DBA2FBEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{251420FD-86F8-40E1-8314-2A33C1364093}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{251420FD-86F8-40E1-8314-2A33C1364093}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{251420FD-86F8-40E1-8314-2A33C1364093}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{251420FD-86F8-40E1-8314-2A33C1364093}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

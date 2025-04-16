@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.Application.Commands.CreateBudget;
 using SimplePersonalFinance.Application.Commands.EditBudget;
 using SimplePersonalFinance.Application.Commands.RemoveBudget;
-using SimplePersonalFinance.Application.Commands.RemoveTransaction;
 using SimplePersonalFinance.Application.Queries.GetBudgetById;
 
 namespace SimplePersonalFinance.API.Controllers;

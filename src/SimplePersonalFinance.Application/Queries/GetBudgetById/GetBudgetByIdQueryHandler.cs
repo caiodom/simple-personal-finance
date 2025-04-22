@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Queries.GetBudgetById;
@@ -11,7 +12,7 @@ public class GetBudgetByIdQueryHandler(IUnitOfWork uow):IRequestHandler<GetBudge
         var budget = await uow.Budgets.GetByIdAsync(request.Id);
 
         if (budget == null)
-            return ResultViewModel<BudgetViewModel>.Error("Budget not found");
+            throw new EntityNotFoundException("Budget", request.Id);
 
         return ResultViewModel<BudgetViewModel>.Success(BudgetViewModel.FromEntity(budget));
     }

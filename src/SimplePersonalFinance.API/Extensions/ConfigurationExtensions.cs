@@ -1,4 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.Application.Extensions;
@@ -30,10 +32,21 @@ public static class ConfigurationExtensions
     public static WebApplicationBuilder AddLog(this WebApplicationBuilder builder)
     {
         Log.Logger = new LoggerConfiguration()
-         .ReadFrom.Configuration(builder.Configuration)
-         .CreateLogger();
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.WithProperty("ApplicationName", "SimplePersonalFinance")
+            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+            .Enrich.FromLogContext()
+            .Enrich.WithMachineName()
+            .Enrich.WithProcessId()
+            .Enrich.WithThreadId()
+            .Enrich.WithCorrelationId()
+            .CreateLogger();
 
-        builder.Host.UseSerilog();
+        builder.Host.UseSerilog((context, services, configuration) =>
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext());
 
         return builder;
     }
@@ -124,10 +137,50 @@ public static class ConfigurationExtensions
         app.UseSerilogRequestLogging(); // This will log HTTP requests
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.UseHealthChecks()
+            .MapControllers();
+        
 
         app.Services.ApplyMigration(app.Environment );
 
         return app;
+    }
+
+
+    public static WebApplication UseHealthChecks(this WebApplication app)
+    {
+        app.UseHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter=UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        return app;
+    }
+
+    public static IApplicationBuilder UseRequestLogging(this IApplicationBuilder builder)
+    {
+
+        builder.UseSerilogRequestLogging(options =>
+        {
+            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            {
+                diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].FirstOrDefault());
+                diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress);
+                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+
+                if (httpContext.User.Identity?.IsAuthenticated == true)
+                    diagnosticContext.Set("UserId", httpContext.User.FindFirst("sub")?.Value);
+            };
+        });
+
+        return builder;
+    }
+    public static IApplicationBuilder UseCorrelationId(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<CorrelationIdMiddleware>();
+    }
+    public static IApplicationBuilder UsePerformanceTracking(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<PerformanceMiddleware>();
     }
 }

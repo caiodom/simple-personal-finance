@@ -11,11 +11,17 @@ public class BudgetEvaluationRequestedDomainEvent:IDomainEvent
 
     public DateTime OccuredOn { get; }
 
+    public string EntityType { get; }
+
+    public Guid EntityId { get; }
+
     public BudgetEvaluationRequestedDomainEvent(Guid accountId,Guid userId,CategoryEnum category)
     {
         AccountId = accountId;
         Category = category;
         UserId = userId;
         OccuredOn = DateTime.UtcNow;
+        EntityType=nameof(BudgetEvaluationRequestedDomainEvent);
+        EntityId = accountId;
     }
 }

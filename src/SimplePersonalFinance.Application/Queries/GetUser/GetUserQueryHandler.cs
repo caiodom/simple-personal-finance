@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels.Users;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Queries.GetUser;
@@ -8,10 +9,10 @@ public class GetUserQueryHandler(IUnitOfWork uow) : IRequestHandler<GetUserQuery
 {
     public async Task<UserViewModel> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
-        var user=await uow.Users.GetByIdAsync(request.Id);
+        var user = await uow.Users.GetByIdAsync(request.Id);
 
         if (user == null)
-            return null;
+            throw new EntityNotFoundException("User", request.Id);
 
         return new UserViewModel(user.Name, user.Email);
     }

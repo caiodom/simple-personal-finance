@@ -12,11 +12,11 @@ public static class PaginationExtensions
     {
         var totalItems = await query.CountAsync(cancellation);
 
-        var item = await query.Skip((pageNumber - 1) * pageSize)
+        var items = await query.Skip((pageNumber - 1) * pageSize)
                               .Take(pageSize)
                               .ToListAsync(cancellation);
 
-        return new PaginatedResult<T>(item, totalItems, pageNumber, pageSize);
+        return new PaginatedResult<T>(items, totalItems, pageNumber, pageSize);
     }
 
 }

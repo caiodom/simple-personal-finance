@@ -30,8 +30,8 @@ public class AccountViewModel
                    account.AccountTypeId,
                    account.Name,
                    account.AccountType.Name,
-                   account.InitialBalance,
-                   account.CurrentBalance);
+                   account.InitialBalance.Amount,
+                   account.CurrentBalance.Amount);
     }
 
 }

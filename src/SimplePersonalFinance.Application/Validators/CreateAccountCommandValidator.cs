@@ -6,16 +6,8 @@ namespace SimplePersonalFinance.Application.Validators;
 
 public class CreateAccountCommandValidator:AbstractValidator<CreateAccountCommand>
 {
-    public CreateAccountCommandValidator(IUnitOfWork uow)
+    public CreateAccountCommandValidator()
     {
-       RuleFor(x=>x.UserId)
-            .NotEmpty()
-            .WithMessage("User ID is required")
-            .Must(x => x != Guid.Empty)
-            .WithMessage("User ID cannot be empty GUID")
-            .MustAsync(async (id,_)=> await uow.Users.GetByIdAsync(id) != null)
-            .WithMessage("User not found");
-
         RuleFor(x => x.AccountType)
             .NotEmpty()
             .WithMessage("Account type is required")

@@ -12,6 +12,7 @@ using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 
 namespace SimplePersonalFinance.Test.API.Controllers;
 
@@ -69,7 +70,8 @@ public class AccountControllerTests
         // Arrange
         var userId = Guid.NewGuid();
         var newAccountId = Guid.NewGuid();
-        var command = new CreateAccountCommand(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var command = new CreateAccountCommand(AccountTypeEnum.CHECKING, "Test Account", 1000M);
+        command.SetUserId(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Success(newAccountId));
@@ -89,7 +91,8 @@ public class AccountControllerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateAccountCommand(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var command = new CreateAccountCommand(AccountTypeEnum.CHECKING, "Test Account", 1000M);
+        command.SetUserId(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Error("Failed to create account"));

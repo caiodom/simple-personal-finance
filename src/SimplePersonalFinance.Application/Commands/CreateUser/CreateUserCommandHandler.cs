@@ -26,7 +26,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
 
         var passwordHash = _authService.ComputeSha256Hash(request.Password);
 
-        var user = new User(request.Name, request.Email, request.BirthDate, passwordHash, DEFAULT_ROLE);
+        var user = User.Create(request.Name, request.Email, passwordHash, DEFAULT_ROLE, request.BirthDate).Value;
 
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();

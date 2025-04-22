@@ -2,6 +2,7 @@
 using SimplePersonalFinance.Application.Commands.CreateTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -39,7 +40,7 @@ public class CreateTransactionCommandHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        Assert.Equal(1500m, account.CurrentBalance); // Balance increased
+        Assert.Equal(1500m, account.CurrentBalance.Amount); // Balance increased
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
@@ -62,7 +63,7 @@ public class CreateTransactionCommandHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        Assert.Equal(800m, account.CurrentBalance); // Balance decreased
+        Assert.Equal(800m, account.CurrentBalance.Amount); // Balance decreased
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }

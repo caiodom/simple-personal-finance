@@ -14,6 +14,6 @@ public class GetUserQueryHandler(IUnitOfWork uow) : IRequestHandler<GetUserQuery
         if (user == null)
             throw new EntityNotFoundException("User", request.Id);
 
-        return new UserViewModel(user.Name, user.Email);
+        return new UserViewModel(user.Name, user.Email.Value);
     }
 }

@@ -12,20 +12,22 @@ public class Account : AggregateRoot
     public Guid UserId { get; private set; }
     public int AccountTypeId { get; private set; }
     public string Name { get; private set; }
-    public decimal InitialBalance { get; private set; }
-    public decimal CurrentBalance { get; private set; }
-
+    public Money InitialBalance { get; private set; }
+    public Money CurrentBalance { get; private set; }
 
     private readonly List<Transaction> _transactions = [];
     public IReadOnlyCollection<Transaction> Transactions => _transactions;
 
     public Account(Guid userId, AccountTypeEnum accountTypeId, string name, decimal initialBalance)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Account name cannot be empty");
+
         UserId = userId;
         AccountTypeId = (int)accountTypeId;
         Name = name;
-        InitialBalance = initialBalance;
-        CurrentBalance = initialBalance;
+        InitialBalance = Money.Create(initialBalance).Value;
+        CurrentBalance = Money.Create(initialBalance).Value;
     }
 
     public Transaction AddTransaction(string description, decimal amount, CategoryEnum category, TransactionTypeEnum transactionType, DateTime date)
@@ -36,9 +38,18 @@ public class Account : AggregateRoot
         var transaction = new Transaction(Id, category, transactionType, description, amount, date);
         _transactions.Add(transaction);
 
+        // Create Money object and update balance based on transaction type
+        var moneyResult = Money.Create(amount);
+        if (moneyResult.IsFailure)
+            throw new DomainException(moneyResult.Error);
 
+        var money = moneyResult.Value;
 
-        UpdateCurrentBalance(amount, transactionType != TransactionTypeEnum.EXPENSE);
+        // Aplica escala negativa para despesas
+        if (transactionType == TransactionTypeEnum.EXPENSE)
+            UpdateCurrentBalance(money.Scale(-1));
+        else
+            UpdateCurrentBalance(money);
 
         AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, UserId, category));
 
@@ -54,34 +65,23 @@ public class Account : AggregateRoot
         if (string.IsNullOrWhiteSpace(newDescription))
             throw new DomainException("Transaction description cannot be empty");
 
-        var originalValue = new MoneyAmount(transaction.Amount, transaction.TransactionTypeId == (int)TransactionTypeEnum.INCOME);
-        var newValue = new MoneyAmount(newAmount, transactionType == TransactionTypeEnum.INCOME);
+        var currentTransactionType = (TransactionTypeEnum)transaction.TransactionTypeId;
+        var originalValueResult = Money.Create(transaction.Amount);
+        var newValueResult = Money.Create(newAmount);
 
-        var balanceUpdater= CreateBalanceUpdateStrategy(transaction, transactionType);
-        balanceUpdater.UpdateBalance(this, originalValue, newValue);
+        if (originalValueResult.IsFailure)
+            throw new DomainException(originalValueResult.Error);
+        if (newValueResult.IsFailure)
+            throw new DomainException(newValueResult.Error);
 
+        var balanceUpdater = CreateBalanceUpdateStrategy(transaction, transactionType);
 
-        #region >>old way<<
-        //UpdateCurrentBalance(amountDifference, transactionType != TransactionTypeEnum.EXPENSE);
-
-
-        /* if (transaction.TransactionTypeId != (int)transactionType)
-         {
-             UpdateCurrentBalance(transaction.Amount, ReverseTransaction(transaction.TransactionTypeId));
-             UpdateCurrentBalance(transaction.Amount, transactionType != TransactionTypeEnum.EXPENSE);
-         }
-         else
-         {
-             decimal ammountDifference = 0;
-             if (transaction.Amount > newAmount)
-                 ammountDifference = transaction.Amount - newAmount;
-             else
-                 ammountDifference = newAmount - transaction.Amount;
-
-                 UpdateCurrentBalance(ammountDifference, transactionType != TransactionTypeEnum.EXPENSE);
-         }*/
-        #endregion
-
+        balanceUpdater.UpdateBalance(
+            this,
+            originalValueResult.Value,
+            newValueResult.Value,
+            currentTransactionType,
+            transactionType);
 
         transaction.UpdateDetails(newAmount, newDescription, category, transactionType);
         AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, UserId, category));
@@ -94,19 +94,26 @@ public class Account : AggregateRoot
             throw new DomainException($"Transaction with id {transactionId} not found in this account");
 
         transaction.SetAsDeleted();
-        UpdateCurrentBalance(transaction.Amount, transaction.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE);
-    }
 
+        var moneyResult = Money.Create(transaction.Amount);
+        if (moneyResult.IsFailure)
+            throw new DomainException(moneyResult.Error);
 
-    public void UpdateCurrentBalance(decimal amount, bool isAdding)
-    {
-        if (isAdding)
-            CurrentBalance += amount;
+        var money = moneyResult.Value;
+
+        if (transaction.TransactionTypeId == (int)TransactionTypeEnum.INCOME)
+            UpdateCurrentBalance(money.Scale(-1));
         else
-            CurrentBalance -= amount;
-
+            UpdateCurrentBalance(money);
     }
 
+    public void UpdateCurrentBalance(Money amount)
+    {
+        if (amount == null)
+            throw new ArgumentNullException(nameof(amount));
+
+        CurrentBalance = CurrentBalance.Add(amount);
+    }
 
     private IBalanceUpdateStrategy CreateBalanceUpdateStrategy(Transaction transaction, TransactionTypeEnum newTransactionType)
     {
@@ -118,12 +125,10 @@ public class Account : AggregateRoot
         return new SameTransactionTypeStrategy();
     }
 
-
-
     // Constructor for EF Core
     protected Account() { }
 
-    //Ef Rel
+    // EF Relationships
     public AccountType AccountType { get; }
     public User User { get; }
 }

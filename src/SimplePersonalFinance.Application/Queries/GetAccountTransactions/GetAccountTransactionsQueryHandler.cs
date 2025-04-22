@@ -5,6 +5,7 @@ using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Queries.GetAccountTransactions;
 
+//REMOVE
 public class GetAccountTransactionsQueryHandler(IUnitOfWork uow):IRequestHandler<GetAccountTransactionsQuery, ResultViewModel<AccountTransactionsViewModel>>
 {
     public async Task<ResultViewModel<AccountTransactionsViewModel>> Handle(GetAccountTransactionsQuery request, CancellationToken cancellationToken)

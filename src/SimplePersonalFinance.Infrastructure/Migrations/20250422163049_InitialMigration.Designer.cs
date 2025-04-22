@@ -12,8 +12,8 @@ using SimplePersonalFinance.Infrastructure.Data.Context;
 namespace SimplePersonalFinance.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250415234817_DbInit")]
-    partial class DbInit
+    [Migration("20250422163049_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,12 +36,6 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("CurrentBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("InitialBalance")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -271,11 +265,6 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -312,7 +301,47 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.OwnsOne("SimplePersonalFinance.Core.Domain.ValueObjects.Money", "CurrentBalance", b1 =>
+                        {
+                            b1.Property<Guid>("AccountId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("CurrentBalance");
+
+                            b1.HasKey("AccountId");
+
+                            b1.ToTable("Accounts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AccountId");
+                        });
+
+                    b.OwnsOne("SimplePersonalFinance.Core.Domain.ValueObjects.Money", "InitialBalance", b1 =>
+                        {
+                            b1.Property<Guid>("AccountId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("InitialBalance");
+
+                            b1.HasKey("AccountId");
+
+                            b1.ToTable("Accounts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AccountId");
+                        });
+
                     b.Navigation("AccountType");
+
+                    b.Navigation("CurrentBalance")
+                        .IsRequired();
+
+                    b.Navigation("InitialBalance")
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -361,6 +390,31 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("TransactionType");
+                });
+
+            modelBuilder.Entity("SimplePersonalFinance.Core.Domain.Entities.User", b =>
+                {
+                    b.OwnsOne("SimplePersonalFinance.Core.Domain.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(256)
+                                .HasColumnType("character varying(256)")
+                                .HasColumnName("Email");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("Users");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.Navigation("Email")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SimplePersonalFinance.Core.Domain.Entities.Account", b =>

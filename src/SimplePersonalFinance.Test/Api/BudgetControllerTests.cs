@@ -61,12 +61,12 @@ public class BudgetControllerTests
     {
         // Arrange
         var command = new CreateBudgetCommand(
-            Guid.NewGuid(),
             CategoryEnum.ENTERTAINMENT,
             100m,
             1,
             2023);
         var budgetId = Guid.NewGuid();
+        command.SetUserId(Guid.NewGuid());
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Success(budgetId));
@@ -86,11 +86,12 @@ public class BudgetControllerTests
     {
         // Arrange
         var command = new CreateBudgetCommand(
-            Guid.NewGuid(),
             CategoryEnum.ENTERTAINMENT,
             100m,
             1,
             2023);
+
+        command.SetUserId(Guid.NewGuid());
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Error("Budget already exists"));

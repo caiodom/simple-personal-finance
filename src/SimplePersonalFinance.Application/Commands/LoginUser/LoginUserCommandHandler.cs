@@ -24,8 +24,8 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUs
                         ?? throw new InvalidOperationException("Invalid email or password");
 
 
-        var token = _authService.GenerateJwtToken(user.Email, user.Role);
+        var token = _authService.GenerateJwtToken(user.Id,user.Email.Value, user.Role);
 
-        return new LoginUserViewModel(user.Email, token);
+        return new LoginUserViewModel(user.Email.Value, token);
     }
 }

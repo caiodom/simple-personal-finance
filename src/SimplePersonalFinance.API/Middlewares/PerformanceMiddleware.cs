@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 namespace SimplePersonalFinance.API.Middlewares;
 
-public class PerformanceMiddleware(RequestDelegate next, ILogger<PerformanceMiddleware> logger) : IMiddleware
+public class PerformanceMiddleware(ILogger<PerformanceMiddleware> logger) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

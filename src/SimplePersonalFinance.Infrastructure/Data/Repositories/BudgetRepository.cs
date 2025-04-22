@@ -24,4 +24,13 @@ public class BudgetRepository(AppDbContext context):IBudgetRepository
             .SingleOrDefaultAsync(x => x.UserId==userId && x.CategoryId == categoryId);
     }
 
+    public IQueryable<Budget> GetAllByUserId(Guid userId)
+    {
+        return context.Budgets
+                        .Include(x => x.Category)
+                        .Where(x => x.UserId == userId && x.IsActive)
+                        .AsNoTracking();
+
+    }
+
 }

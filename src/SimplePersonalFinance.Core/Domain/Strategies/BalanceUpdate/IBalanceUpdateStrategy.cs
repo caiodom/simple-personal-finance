@@ -1,9 +1,15 @@
 ﻿using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
 
 namespace SimplePersonalFinance.Core.Domain.Strategies.BalanceUpdate;
 
 public interface IBalanceUpdateStrategy
 {
-    void UpdateBalance(Account account, MoneyAmount originalValue, MoneyAmount newValue);
+    void UpdateBalance(
+        Account account,
+        Money originalValue,
+        Money newValue,
+        TransactionTypeEnum originalType,
+        TransactionTypeEnum newType);
 }

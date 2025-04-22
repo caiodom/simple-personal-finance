@@ -4,7 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.Application.Commands.CreateBudget;
 using SimplePersonalFinance.Application.Commands.EditBudget;
 using SimplePersonalFinance.Application.Commands.RemoveBudget;
+using SimplePersonalFinance.Application.Queries.GetBudget;
 using SimplePersonalFinance.Application.Queries.GetBudgetById;
+using SimplePersonalFinance.Core.Domain.Results;
+using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SimplePersonalFinance.API.Controllers;
 
@@ -12,6 +16,23 @@ namespace SimplePersonalFinance.API.Controllers;
 [Authorize]
 public class BudgetController(IMediator mediator) : ControllerBase
 {
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        Guid userId = Guid.Empty;
+
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+            userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+
+        var result = await mediator.Send(new GetBudgetsQuery(userId));
+
+        if (!result.IsSuccess)
+            return NotFound(result.Message);
+
+        return Ok(result.Data);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -27,6 +48,13 @@ public class BudgetController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBudget([FromBody] CreateBudgetCommand command)
     {
+        Guid userId = Guid.Empty;
+
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+            userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        command.SetUserId(userId);
+
         var result = await mediator.Send(command);
 
         if (!result.IsSuccess)

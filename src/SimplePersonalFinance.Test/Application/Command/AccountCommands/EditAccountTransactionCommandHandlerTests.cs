@@ -3,6 +3,7 @@ using SimplePersonalFinance.Application.Commands.EditTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -110,7 +111,7 @@ public class EditAccountTransactionCommandHandlerTests
             DateTime.Now);
 
         // Balance should be 700 after expense
-        Assert.Equal(700m, account.CurrentBalance);
+        Assert.Equal(700m, account.CurrentBalance.Amount);
 
         // Set the transaction ID to match our test ID
         typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
@@ -133,7 +134,7 @@ public class EditAccountTransactionCommandHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         // Balance should now be 1300 (original 1000 + 300 instead of - 300)
-        Assert.Equal(1300m, account.CurrentBalance);
+        Assert.Equal(1300m, account.CurrentBalance.Amount);
         Assert.Equal((int)TransactionTypeEnum.INCOME, transaction.TransactionTypeId);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }

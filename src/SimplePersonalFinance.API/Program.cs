@@ -11,6 +11,5 @@ builder.Services.AddServices(builder.Configuration);
 var app = builder.Build();
 
 app.UseConfigurations();
-app.UseCorrelationId();
 
 await app.RunAsync();

@@ -24,7 +24,7 @@ public class AuthService(IConfiguration configuration) : IAuthService
         }
     }
 
-    public string GenerateJwtToken(string email, string role)
+    public string GenerateJwtToken(Guid userId, string email, string role)
     {
         var issuer = configuration["Jwt:Issuer"];
         var audience = configuration["Jwt:Audience"];
@@ -37,6 +37,7 @@ public class AuthService(IConfiguration configuration) : IAuthService
         var claims = new List<Claim>
             {
                 new Claim("userName", email),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Role, role)
             };
 

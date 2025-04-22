@@ -1,5 +1,8 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Results;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Commands.CreateAccount;

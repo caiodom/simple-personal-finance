@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using SimplePersonalFinance.Application.Commands.CreateUser;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 
 namespace SimplePersonalFinance.Application.Validators;
 
@@ -16,7 +17,11 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage("Email is required")
-            .EmailAddress()
+            .Must(email =>
+            {
+                var result= Email.Create(email);
+                return result.IsSuccess;
+            })
             .WithMessage("Invalid email format");
 
         RuleFor(x => x.Password)

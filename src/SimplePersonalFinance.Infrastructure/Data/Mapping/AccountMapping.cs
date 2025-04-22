@@ -16,8 +16,23 @@ public class AccountMapping: IEntityTypeConfiguration<Account>
                 .IsRequired()
                 .HasMaxLength(150);
 
-        builder.Property(a => a.InitialBalance)
-            .HasColumnType("decimal(18,2)");
+        builder.OwnsOne(a => a.InitialBalance, balance =>
+        {
+            balance.Property(b => b.Amount)
+                .IsRequired()
+                .HasColumnName("InitialBalance")
+                .HasColumnType("decimal(18,2)");
+                
+        });
+
+        builder.OwnsOne(a => a.CurrentBalance, balance =>
+        {
+            balance.Property(b => b.Amount)
+                .IsRequired()
+                .HasColumnName("CurrentBalance")
+                .HasColumnType("decimal(18,2)");
+                
+        });
 
 
         builder.HasOne(a => a.User)

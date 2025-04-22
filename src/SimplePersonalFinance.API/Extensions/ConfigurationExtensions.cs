@@ -57,15 +57,25 @@ public static class ConfigurationExtensions
         services.AddInfrastructure(configuration)
                 .AddExceptionHandler<ApiExceptionHandler>()
                 .AddProblemDetails()
+                .AddMiddlewares()
                 .AddApplicationConfigurations()
                 .AddCorsConfiguration(configuration)
                 .AddEndpointsApiExplorer()
                 .AddSwaggerConfigurations()
+                .AddHealthCheck()
                 .AddControllers();
+
+     
 
         return services;
     }
 
+    private static IServiceCollection AddMiddlewares(this IServiceCollection services)
+    {
+        services.AddTransient<CorrelationIdMiddleware>();
+        services.AddTransient<PerformanceMiddleware>();
+        return services;
+    }
     private static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -81,6 +91,12 @@ public static class ConfigurationExtensions
                             .AllowAnyHeader();
                  });
         });
+
+        return services;
+    }
+    private static IServiceCollection AddHealthCheck(this IServiceCollection services)
+    {
+        services.AddHealthChecks();
 
         return services;
     }
@@ -132,6 +148,7 @@ public static class ConfigurationExtensions
 
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
+        app.UseCorrelationId();
 
         app.UseCors("CorsPolicy");
         app.UseSerilogRequestLogging(); // This will log HTTP requests
@@ -149,7 +166,7 @@ public static class ConfigurationExtensions
 
     public static WebApplication UseHealthChecks(this WebApplication app)
     {
-        app.UseHealthChecks("/health", new HealthCheckOptions
+        app.UseHealthChecks("/api/health", new HealthCheckOptions
         {
             ResponseWriter=UIResponseWriter.WriteHealthCheckUIResponse
         });

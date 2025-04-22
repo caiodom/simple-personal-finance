@@ -26,7 +26,8 @@ public class CreateBudgetCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateBudgetCommand(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
+        var command = new CreateBudgetCommand(CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
+        command.SetUserId(userId);
 
         _budgetRepositoryMock.Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT))
             .ReturnsAsync((Budget)null);
@@ -46,7 +47,8 @@ public class CreateBudgetCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateBudgetCommand(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
+        var command = new CreateBudgetCommand(CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
+        command.SetUserId(userId);
         var existingBudget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
 
         _budgetRepositoryMock.Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT))

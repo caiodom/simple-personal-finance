@@ -8,6 +8,7 @@ using SimplePersonalFinance.Application.Commands.RemoveTransaction;
 using SimplePersonalFinance.Application.Queries.GetAccount;
 using SimplePersonalFinance.Application.Queries.GetAccountsByUserId;
 using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
+using System.Security.Claims;
 
 namespace SimplePersonalFinance.API.Controllers;
 
@@ -27,9 +28,14 @@ public class AccountController(IMediator mediator) : ControllerBase
     }
 
     //get accounts by userId create.
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetByUserId(Guid userId)
+    [HttpGet("user")]
+    public async Task<IActionResult> GetByUserId()
     {
+        Guid userId=Guid.Empty;
+
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+              userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         var result = await mediator.Send(new GetAccountByUserIdQuery(userId));
         if (!result.IsSuccess)
             return BadRequest(result.Message);
@@ -39,6 +45,13 @@ public class AccountController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody]CreateAccountCommand command)
     {
+        Guid userId = Guid.Empty;
+
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+            userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        command.SetUserId(userId);
+
         var result = await mediator.Send(command);
 
         if (!result.IsSuccess)
@@ -47,7 +60,7 @@ public class AccountController(IMediator mediator) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, command);
     }
 
-
+    //REMOVE
     [HttpGet("transactions/{accountId}")]
     public async Task<IActionResult> GetTransactions(Guid accountId)
     {

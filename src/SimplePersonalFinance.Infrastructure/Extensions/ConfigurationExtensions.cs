@@ -10,6 +10,7 @@ using SimplePersonalFinance.Infrastructure.Data;
 using SimplePersonalFinance.Infrastructure.Data.Context;
 using SimplePersonalFinance.Infrastructure.Data.Repositories;
 using SimplePersonalFinance.Infrastructure.Services;
+using System.Security.Claims;
 using System.Text;
 
 namespace SimplePersonalFinance.Infrastructure.Extensions
@@ -59,6 +60,7 @@ namespace SimplePersonalFinance.Infrastructure.Extensions
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = configuration["Jwt:Issuer"],
                         ValidAudience = configuration["Jwt:Audience"],
+                        NameClaimType= ClaimTypes.NameIdentifier,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                     };
                 });

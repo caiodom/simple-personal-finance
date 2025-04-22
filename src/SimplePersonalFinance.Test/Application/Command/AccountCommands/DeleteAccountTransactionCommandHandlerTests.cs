@@ -3,6 +3,7 @@ using SimplePersonalFinance.Application.Commands.RemoveTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -60,7 +61,7 @@ public class DeleteAccountTransactionCommandHandlerTests
             DateTime.Now);
 
         // Balance after expense should be 700
-        Assert.Equal(700m, account.CurrentBalance);
+        Assert.Equal(700m, account.CurrentBalance.Amount);
 
         // Set the transaction ID to match our test ID
         typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
@@ -76,7 +77,7 @@ public class DeleteAccountTransactionCommandHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
-        Assert.Equal(1000m, account.CurrentBalance); // Balance should be back to original
+        Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
         Assert.Empty(account.Transactions); // Transaction should be removed
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
@@ -99,7 +100,7 @@ public class DeleteAccountTransactionCommandHandlerTests
             DateTime.Now);
 
         // Balance after income should be 1500
-        Assert.Equal(1500m, account.CurrentBalance);
+        Assert.Equal(1500m, account.CurrentBalance.Amount);
 
         // Set the transaction ID to match our test ID
         typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
@@ -114,7 +115,7 @@ public class DeleteAccountTransactionCommandHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(1000m, account.CurrentBalance); // Balance should be back to original
+        Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 }

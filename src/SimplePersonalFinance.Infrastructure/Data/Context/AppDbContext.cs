@@ -29,8 +29,9 @@ public class AppDbContext:DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.SeedDefaults();
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        modelBuilder.SeedDefaults();
+        
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

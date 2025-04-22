@@ -5,13 +5,7 @@ namespace SimplePersonalFinance.API.Middlewares;
 
 public class CorrelationIdMiddleware:IMiddleware
 {
-    private readonly RequestDelegate _next;
     private const string CorrelationIdHeader = "X-Correlation-ID";
-
-    public CorrelationIdMiddleware(RequestDelegate next)
-    {
-        _next= next;
-    }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
@@ -24,7 +18,7 @@ public class CorrelationIdMiddleware:IMiddleware
         });
 
         using (LogContext.PushProperty("CorrelationId", correlationId))
-            await _next(context);
+            await next(context);
     }
 
 

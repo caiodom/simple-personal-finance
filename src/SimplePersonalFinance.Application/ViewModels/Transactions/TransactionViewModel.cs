@@ -4,6 +4,7 @@ namespace SimplePersonalFinance.Application.ViewModels.Accounts;
 
 public class TransactionViewModel
 {
+    public Guid Id { get; set; }
     public Guid AccountId { get; private set; }
     public int CategoryId { get; private set; }
     public string CategoryName { get; private set; }
@@ -14,9 +15,10 @@ public class TransactionViewModel
     public DateTime Date { get; private set; }
 
 
-    public TransactionViewModel(Guid accountId, int categoryId, string categoryName, int transactionTypeId, 
+    public TransactionViewModel(Guid id,Guid accountId, int categoryId, string categoryName, int transactionTypeId, 
                                 string transactionTypeName, string description, decimal amount, DateTime date)
     {
+        Id = id;
         AccountId = accountId;
         CategoryId = categoryId;
         CategoryName = categoryName;
@@ -29,13 +31,14 @@ public class TransactionViewModel
 
     public static TransactionViewModel ToViewModel(Transaction transaction)
     {
-       return new (transaction.AccountId,
-                                 transaction.CategoryId,
-                                 transaction.Category.Name,
-                                 transaction.TransactionTypeId,
-                                 transaction.TransactionType.Name,
-                                 transaction.Description,
-                                 transaction.Amount,
-                                 transaction.Date);
+       return new (transaction.Id,
+                   transaction.AccountId,
+                   transaction.CategoryId,
+                   transaction.Category.Name,
+                   transaction.TransactionTypeId,
+                   transaction.TransactionType.Name,
+                   transaction.Description,
+                   transaction.Amount,
+                   transaction.Date);
     }
 }

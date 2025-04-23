@@ -1,6 +1,6 @@
 ﻿using SimplePersonalFinance.Core.Domain.Entities;
 
-namespace SimplePersonalFinance.Application.ViewModels;
+namespace SimplePersonalFinance.Application.ViewModels.Budgets;
 
 public class BudgetViewModel
 {

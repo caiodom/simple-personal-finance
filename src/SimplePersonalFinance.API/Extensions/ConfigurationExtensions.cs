@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using SimplePersonalFinance.API.Middlewares;
+using SimplePersonalFinance.API.Services;
+using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Extensions;
 using SimplePersonalFinance.Infrastructure.Data.Context;
 using SimplePersonalFinance.Infrastructure.Data.Extensions;
@@ -51,7 +53,6 @@ public static class ConfigurationExtensions
         return builder;
     }
 
-
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
@@ -65,7 +66,8 @@ public static class ConfigurationExtensions
                 .AddHealthCheck()
                 .AddControllers();
 
-     
+
+        services.AddScoped<IAuthUserHandler, AuthUserHandler>();
 
         return services;
     }
@@ -100,7 +102,7 @@ public static class ConfigurationExtensions
 
         return services;
     }
-    public static IServiceCollection AddSwaggerConfigurations(this IServiceCollection services)
+    private static IServiceCollection AddSwaggerConfigurations(this IServiceCollection services)
     {
         services.AddSwaggerGen(c =>
         {
@@ -149,9 +151,10 @@ public static class ConfigurationExtensions
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
         app.UseCorrelationId();
+        app.UsePerformanceTracking();
 
         app.UseCors("CorsPolicy");
-        app.UseSerilogRequestLogging(); // This will log HTTP requests
+        app.UseRequestLogging(); // This will log HTTP requests
         app.UseAuthorization();
 
         app.UseHealthChecks()
@@ -162,9 +165,7 @@ public static class ConfigurationExtensions
 
         return app;
     }
-
-
-    public static WebApplication UseHealthChecks(this WebApplication app)
+    private static WebApplication UseHealthChecks(this WebApplication app)
     {
         app.UseHealthChecks("/api/health", new HealthCheckOptions
         {
@@ -173,8 +174,7 @@ public static class ConfigurationExtensions
 
         return app;
     }
-
-    public static IApplicationBuilder UseRequestLogging(this IApplicationBuilder builder)
+    private static IApplicationBuilder UseRequestLogging(this IApplicationBuilder builder)
     {
 
         builder.UseSerilogRequestLogging(options =>
@@ -192,11 +192,11 @@ public static class ConfigurationExtensions
 
         return builder;
     }
-    public static IApplicationBuilder UseCorrelationId(this IApplicationBuilder builder)
+    private static IApplicationBuilder UseCorrelationId(this IApplicationBuilder builder)
     {
         return builder.UseMiddleware<CorrelationIdMiddleware>();
     }
-    public static IApplicationBuilder UsePerformanceTracking(this IApplicationBuilder builder)
+    private static IApplicationBuilder UsePerformanceTracking(this IApplicationBuilder builder)
     {
         return builder.UseMiddleware<PerformanceMiddleware>();
     }

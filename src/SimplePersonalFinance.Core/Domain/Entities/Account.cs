@@ -87,12 +87,34 @@ public class Account : AggregateRoot
         AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, UserId, category));
     }
 
+    public void DeleteAccount()
+    {
+        foreach (var transaction in _transactions)
+            RemoveAccountTransactions(transaction);
+
+        SetAsDeleted();
+    }
+
     public void DeleteTransaction(Guid transactionId)
     {
         var transaction = _transactions.FirstOrDefault(t => t.Id == transactionId);
         if (transaction == null)
             throw new DomainException($"Transaction with id {transactionId} not found in this account");
 
+        RemoveAccountTransactions(transaction);
+    }
+
+    public void UpdateCurrentBalance(Money amount)
+    {
+        if (amount == null)
+            throw new ArgumentNullException(nameof(amount));
+
+        CurrentBalance = CurrentBalance.Add(amount);
+    }
+
+
+    private void RemoveAccountTransactions(Transaction transaction)
+    {
         transaction.SetAsDeleted();
 
         var moneyResult = Money.Create(transaction.Amount);
@@ -106,15 +128,6 @@ public class Account : AggregateRoot
         else
             UpdateCurrentBalance(money);
     }
-
-    public void UpdateCurrentBalance(Money amount)
-    {
-        if (amount == null)
-            throw new ArgumentNullException(nameof(amount));
-
-        CurrentBalance = CurrentBalance.Add(amount);
-    }
-
     private IBalanceUpdateStrategy CreateBalanceUpdateStrategy(Transaction transaction, TransactionTypeEnum newTransactionType)
     {
         var currentTransactionType = (TransactionTypeEnum)transaction.TransactionTypeId;

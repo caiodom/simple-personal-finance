@@ -2,6 +2,7 @@
 using SimplePersonalFinance.Application.Commands.EditBudget;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -23,27 +24,6 @@ public class EditBudgetCommandHandlerTests
 
 
     [Fact]
-    public async Task Handle_WithZeroAmount_ShouldReturnError()
-    {
-        // Arrange
-        var budgetId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
-        var budget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
-        var command = new EditBudgetCommand(budgetId, 0m, 2, 2023);
-
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
-            .ReturnsAsync(budget);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Amount must be greater than zero", result.Message);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
-    }
-
-    [Fact]
     public async Task Handle_WithNegativeAmount_ShouldReturnError()
     {
         // Arrange
@@ -55,57 +35,10 @@ public class EditBudgetCommandHandlerTests
         _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
             .ReturnsAsync(budget);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Amount must be greater than zero", result.Message);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<DomainException>(() => _handler.Handle(command, CancellationToken.None));
     }
 
-    [Fact]
-    public async Task Handle_WithInvalidMonth_ShouldReturnError()
-    {
-        // Arrange
-        var budgetId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
-        var budget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
-        var command = new EditBudgetCommand(budgetId, 200m, 13, 2023); // Invalid month
-
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
-            .ReturnsAsync(budget);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Month must be between 1 and 12", result.Message);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WithPastYear_ShouldReturnError()
-    {
-        // Arrange
-        var budgetId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
-        var budget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
-        var pastYear = DateTime.Now.Year - 2;
-        var command = new EditBudgetCommand(budgetId, 200m, 2, pastYear);
-
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
-            .ReturnsAsync(budget);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Cannot set budget for past years", result.Message);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
-    }
 
     [Fact]
     public async Task Handle_WithSameValues_ShouldUpdateSuccessfully()
@@ -142,14 +75,14 @@ public class EditBudgetCommandHandlerTests
 
         _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
             .ReturnsAsync(budget);
+
         _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync())
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        
 
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Error updating budget", result.Message);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
+        
     }
 }

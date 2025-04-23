@@ -692,4 +692,94 @@ public class AccountTests
         // Assert
         Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
     }
+
+    [Fact]
+    public void Constructor_WithEmptyName_ShouldThrowDomainException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var emptyName = "";
+        var initialBalance = 1000m;
+
+        // Act & Assert
+        var exception = Assert.Throws<DomainException>(() =>
+            new Account(userId, AccountTypeEnum.CHECKING, emptyName, initialBalance));
+
+        Assert.Contains("Account name cannot be empty", exception.Message);
+    }
+
+    [Fact]
+    public void UpdateCurrentBalance_WithNullAmount_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => account.UpdateCurrentBalance(null));
+    }
+
+    [Fact]
+    public void DeleteAccount_ShouldRemoveAllTransactionsAndMarkAsDeleted()
+    {
+        // Arrange
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);
+
+        // Add multiple transactions
+        account.AddTransaction("Transaction 1", 200m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
+        account.AddTransaction("Transaction 2", 300m, CategoryEnum.SALARY, TransactionTypeEnum.INCOME, DateTime.Now);
+
+        Assert.Equal(2, account.Transactions.Count);
+        Assert.True(account.IsActive);
+
+        // Act
+        account.DeleteAccount();
+
+        // Assert
+        Assert.False(account.IsActive); // Account should be marked as deleted
+        Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be restored to initial balance
+
+        // Verify transactions are marked as deleted by checking if they still affect the balance
+        foreach (var transaction in account.Transactions)
+        {
+            Assert.False(transaction.IsActive);
+        }
+    }
+
+    [Fact]
+    public void DeleteTransaction_WithNonExistentId_ShouldThrowDomainException()
+    {
+        // Arrange
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var nonExistentId = Guid.NewGuid();
+
+        // Act & Assert
+        var exception = Assert.Throws<DomainException>(() => account.DeleteTransaction(nonExistentId));
+
+        Assert.Contains($"Transaction with id {nonExistentId} not found", exception.Message);
+    }
+
+    [Fact]
+    public void DeleteTransaction_WithMultipleTransactions_ShouldOnlyDeleteSpecificTransaction()
+    {
+        // Arrange
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);
+
+        // Add multiple transactions
+        var transaction1 = account.AddTransaction("Transaction 1", 200m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
+        var transaction2 = account.AddTransaction("Transaction 2", 300m, CategoryEnum.SALARY, TransactionTypeEnum.INCOME, DateTime.Now);
+        var transaction3 = account.AddTransaction("Transaction 3", 100m, CategoryEnum.OTHERS, TransactionTypeEnum.EXPENSE, DateTime.Now);
+
+        Assert.Equal(3, account.Transactions.Count);
+        Assert.Equal(1000m - 200m + 300m - 100m, account.CurrentBalance.Amount); // 1000
+
+        // Act
+        account.DeleteTransaction(transaction2.Id); // Delete the income transaction
+
+        // Assert
+        // Transaction should be marked as deleted
+        Assert.False(transaction2.IsActive);
+
+        // Balance should be updated correctly (income reversed)
+        Assert.Equal(1000m - 200m - 100m, account.CurrentBalance.Amount); // 700
+    }
 }

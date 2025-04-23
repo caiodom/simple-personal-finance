@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SimplePersonalFinance.API.Controllers;
+using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Commands.CreateAccount;
 using SimplePersonalFinance.Application.Commands.CreateTransaction;
 using SimplePersonalFinance.Application.Commands.EditTransaction;
@@ -20,11 +21,13 @@ public class AccountControllerTests
 {
     private readonly Mock<IMediator> _mediatorMock;
     private readonly AccountController _controller;
-
+    private readonly Mock<IAuthUserHandler> _authUserHandlerMock;
     public AccountControllerTests()
     {
         _mediatorMock = new Mock<IMediator>();
-        _controller = new AccountController(_mediatorMock.Object);
+        _authUserHandlerMock = new Mock<IAuthUserHandler>();
+
+        _controller = new AccountController(_mediatorMock.Object, _authUserHandlerMock.Object);
     }
 
     [Fact]
@@ -53,6 +56,7 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = Guid.NewGuid();
+
         _mediatorMock.Setup(m => m.Send(It.IsAny<GetAccountByIdQuery>(), default))
             .ReturnsAsync(ResultViewModel<AccountViewModel>.Error("Account not found"));
 
@@ -71,7 +75,9 @@ public class AccountControllerTests
         var userId = Guid.NewGuid();
         var newAccountId = Guid.NewGuid();
         var command = new CreateAccountCommand(AccountTypeEnum.CHECKING, "Test Account", 1000M);
-        command.SetUserId(userId);
+
+        _authUserHandlerMock.Setup(m => m.GetUserId())
+                            .Returns(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Success(newAccountId));
@@ -92,7 +98,8 @@ public class AccountControllerTests
         // Arrange
         var userId = Guid.NewGuid();
         var command = new CreateAccountCommand(AccountTypeEnum.CHECKING, "Test Account", 1000M);
-        command.SetUserId(userId);
+
+        _authUserHandlerMock.Setup(m => m.GetUserId()).Returns(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Error("Failed to create account"));

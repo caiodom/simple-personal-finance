@@ -1,9 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Commands.CreateAccount;
 using SimplePersonalFinance.Application.Commands.CreateTransaction;
 using SimplePersonalFinance.Application.Commands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.RemoveAccount;
 using SimplePersonalFinance.Application.Commands.RemoveTransaction;
 using SimplePersonalFinance.Application.Queries.GetAccount;
 using SimplePersonalFinance.Application.Queries.GetAccountsByUserId;
@@ -14,7 +16,7 @@ namespace SimplePersonalFinance.API.Controllers;
 
 [Route("api/account")]
 [Authorize]
-public class AccountController(IMediator mediator) : ControllerBase
+public class AccountController(IMediator mediator,IAuthUserHandler authUserHandler) : ControllerBase
 {
 
     [HttpGet("{id}")]
@@ -45,10 +47,10 @@ public class AccountController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody]CreateAccountCommand command)
     {
-        Guid userId = Guid.Empty;
+        Guid userId = authUserHandler.GetUserId();
 
-        if (HttpContext.User.Identity?.IsAuthenticated == true)
-            userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if(userId == Guid.Empty)
+            return BadRequest("User not found");
 
         command.SetUserId(userId);
 
@@ -58,6 +60,17 @@ public class AccountController(IMediator mediator) : ControllerBase
             return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, command);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await mediator.Send(new RemoveAccountCommand(id));
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Message);
+
+        return NoContent();
     }
 
     //REMOVE

@@ -37,6 +37,7 @@ public class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IHostEnvir
                 "One or more validation errors occurred",
                 new { Errors = ex.Errors }),
 
+
             Core.Domain.Exceptions.InvalidOperationException ex => CreateProblemDetails(
                 StatusCodes.Status400BadRequest,
                 "Invalid Operation",
@@ -47,7 +48,6 @@ public class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IHostEnvir
                 "Domain Error",
                 ex.Message),
 
-            // Outros tipos de exceções
             _ => CreateProblemDetails(
                 StatusCodes.Status500InternalServerError,
                 "Server Error",

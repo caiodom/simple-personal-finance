@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using SimplePersonalFinance.Application.Behaviors;
 using SimplePersonalFinance.Application.Commands.CreateUser;
 using SimplePersonalFinance.Application.Validators;
 
@@ -19,6 +21,7 @@ public static class ConfigurationExtensions
     public static IServiceCollection AddMediaTR(this IServiceCollection services)
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>());
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         return services;
     }
 

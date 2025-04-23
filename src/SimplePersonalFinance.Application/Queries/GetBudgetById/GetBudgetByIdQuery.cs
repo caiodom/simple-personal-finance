@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Application.ViewModels.Budgets;
 
 namespace SimplePersonalFinance.Application.Queries.GetBudgetById;
 

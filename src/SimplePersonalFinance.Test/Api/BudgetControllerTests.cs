@@ -2,11 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SimplePersonalFinance.API.Controllers;
+using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Commands.CreateBudget;
 using SimplePersonalFinance.Application.Commands.EditBudget;
 using SimplePersonalFinance.Application.Commands.RemoveBudget;
 using SimplePersonalFinance.Application.Queries.GetBudgetById;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Application.ViewModels.Budgets;
+using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
 using Xunit;
 
@@ -16,11 +19,12 @@ public class BudgetControllerTests
 {
     private readonly Mock<IMediator> _mediatorMock;
     private readonly BudgetController _controller;
-
+    private readonly Mock<IAuthUserHandler> _authUserHandlerMock;
     public BudgetControllerTests()
     {
         _mediatorMock = new Mock<IMediator>();
-        _controller = new BudgetController(_mediatorMock.Object);
+        _authUserHandlerMock = new Mock<IAuthUserHandler>();
+        _controller = new BudgetController(_mediatorMock.Object, _authUserHandlerMock.Object);
     }
 
     [Fact]
@@ -60,13 +64,15 @@ public class BudgetControllerTests
     public async Task CreateBudget_WhenValidCommand_ReturnsCreatedAtActionResult()
     {
         // Arrange
+        var userId = Guid.NewGuid();
         var command = new CreateBudgetCommand(
             CategoryEnum.ENTERTAINMENT,
             100m,
             1,
             2023);
+
         var budgetId = Guid.NewGuid();
-        command.SetUserId(Guid.NewGuid());
+        _authUserHandlerMock.Setup(m => m.GetUserId()).Returns(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Success(budgetId));
@@ -85,13 +91,15 @@ public class BudgetControllerTests
     public async Task CreateBudget_WhenInvalidCommand_ReturnsBadRequest()
     {
         // Arrange
+        var userId = Guid.NewGuid();
         var command = new CreateBudgetCommand(
             CategoryEnum.ENTERTAINMENT,
             100m,
             1,
             2023);
 
-        command.SetUserId(Guid.NewGuid());
+        _authUserHandlerMock.Setup(m => m.GetUserId())
+                            .Returns(userId);
 
         _mediatorMock.Setup(m => m.Send(command, default))
             .ReturnsAsync(ResultViewModel<Guid>.Error("Budget already exists"));

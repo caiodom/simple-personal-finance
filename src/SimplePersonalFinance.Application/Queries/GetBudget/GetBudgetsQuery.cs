@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
+using SimplePersonalFinance.Application.ViewModels.Budgets;
 using SimplePersonalFinance.Shared.Contracts;
 
 namespace SimplePersonalFinance.Application.Queries.GetBudget;

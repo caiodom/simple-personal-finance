@@ -12,6 +12,7 @@ public class CreateUserCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IAuthService> _authServiceMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+   
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
@@ -28,10 +29,14 @@ public class CreateUserCommandHandlerTests
     {
         // Arrange
         // Arrange
-        var command = new CreateUserCommand("Test User", "teste@example.com", "Password123!", new DateTime(1993, 3, 1));
+        var command = new CreateUserCommand("Test User", "Password123!", "teste@example.com",  new DateTime(1993, 3, 1));
 
         _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email))
-            .ReturnsAsync(false); // Email doesn't exist
+            .ReturnsAsync(false);
+
+        _authServiceMock.Setup(x=>x.ComputeSha256Hash(It.IsAny<string>()))
+                        .Returns("hashedPassword");
+
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

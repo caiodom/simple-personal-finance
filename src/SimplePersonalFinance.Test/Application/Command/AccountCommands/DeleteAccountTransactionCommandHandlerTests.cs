@@ -78,7 +78,7 @@ public class DeleteAccountTransactionCommandHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
         Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
-        Assert.Empty(account.Transactions); // Transaction should be removed
+        Assert.Empty(account.Transactions.Where(x=>x.IsActive)); // Transaction should be removed
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 

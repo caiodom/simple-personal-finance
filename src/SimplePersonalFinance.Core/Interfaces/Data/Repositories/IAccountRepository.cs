@@ -6,7 +6,7 @@ public interface IAccountRepository
 {
     Task AddAsync(Account account);
     void AddAccountTransaction(Transaction transaction);
-    Task<List<Account>> GetAccountsByUserIdAsync(Guid userId);
+    IQueryable<Account> GetAccountsByUserIdAsync(Guid userId);
     Task<Account?> GetByIdAsync(Guid id);
     Task<Account?> GetAccountWithTransactionsAsync(Guid id);
     Task<Account?> GetAccountWithSpecificTransactionAsync(Guid id, Guid transactionId);

@@ -9,7 +9,7 @@ public class User:Entity
     public string Name { get; private set; }
     public Email Email { get; private set; }
     public string PasswordHash { get; private set; }
-    public DateTime BirthdayDate { get; set; }
+    public DateTime BirthdayDate { get; private set; }
 
     public string Role { get; private set; }
 
@@ -41,6 +41,10 @@ public class User:Entity
 
         if (string.IsNullOrWhiteSpace(passwordHash))
             return Result.Failure<User>("Password hash cannot be empty");
+
+        if (string.IsNullOrWhiteSpace(role))
+            return Result.Failure<User>("Role cannot be empty");
+
 
         var user = new User(
             name,

@@ -23,19 +23,19 @@ public class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IHostEnvir
                 StatusCodes.Status404NotFound,
                 "Resource Not Found",
                 ex.Message,
-                new { EntityName = ex.EntityName, EntityId = ex.EntityId }),
+                new { ex.EntityName, ex.EntityId }),
 
             BusinessRuleViolationException ex => CreateProblemDetails(
                 StatusCodes.Status422UnprocessableEntity,
                 "Business Rule Violation",
                 ex.Message,
-                new { RuleName = ex.RuleName }),
+                new { ex.RuleName }),
 
             ValidationException ex => CreateProblemDetails(
                 StatusCodes.Status400BadRequest,
                 "Validation Error",
                 "One or more validation errors occurred",
-                new { Errors = ex.Errors }),
+                new { ex.Errors }),
 
 
             DomainException ex => CreateProblemDetails(

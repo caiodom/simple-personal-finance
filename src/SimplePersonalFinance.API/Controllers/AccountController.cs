@@ -29,15 +29,12 @@ public class AccountController(IMediator mediator,IAuthUserHandler authUserHandl
         return Ok(result);
     }
 
-    [HttpGet("user")]
-    public async Task<IActionResult> GetByUserId()
+    [HttpGet]
+    public async Task<IActionResult> GetByUserId(int pageNumber=1,int pageSize=10)
     {
-        Guid userId=Guid.Empty;
+        Guid userId = authUserHandler.GetUserId();
 
-        if (HttpContext.User.Identity?.IsAuthenticated == true)
-              userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-        var result = await mediator.Send(new GetAccountByUserIdQuery(userId));
+        var result = await mediator.Send(new GetAccountByUserIdQuery(userId,pageNumber,pageSize));
         if (!result.IsSuccess)
             return BadRequest(result.Message);
         return Ok(result);

@@ -48,7 +48,7 @@ public class AccountMapping: IEntityTypeConfiguration<Account>
         builder.HasMany(c => c.Transactions)
             .WithOne(x=>x.Account)
             .HasForeignKey(c => c.AccountId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

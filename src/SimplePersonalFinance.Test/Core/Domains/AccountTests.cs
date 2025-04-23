@@ -644,7 +644,6 @@ public class AccountTests
         Assert.Contains("Transaction description cannot be empty", exception.Message);
     }
 
-    // Se o seu Money class rejeita valores negativos
     [Fact]
     public void EditTransaction_NegativeAmount_ShouldThrowDomainException()
     {
@@ -666,7 +665,6 @@ public class AccountTests
                 CategoryEnum.OTHERS,
                 TransactionTypeEnum.EXPENSE));
 
-        // A mensagem depende da implementação do seu Money.Create
         Assert.Contains("Transaction amount cannot be negative", exception.Message);
     }
 

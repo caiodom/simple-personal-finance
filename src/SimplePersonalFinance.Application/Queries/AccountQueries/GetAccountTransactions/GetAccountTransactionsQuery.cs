@@ -6,7 +6,7 @@ namespace SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountTra
 
 public class GetAccountTransactionsQuery:IRequest<ResultViewModel<AccountTransactionsViewModel>>
 {
-    public Guid AccountId { get; private set; }
+    public Guid AccountId { get;}
     public GetAccountTransactionsQuery(Guid accountId)
     {
         AccountId = accountId;

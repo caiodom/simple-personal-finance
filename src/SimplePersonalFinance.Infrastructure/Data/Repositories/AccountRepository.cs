@@ -16,11 +16,10 @@ public class AccountRepository(AppDbContext context) : IAccountRepository
     }
 
 
-    public async Task<List<Account>> GetAccountsByUserIdAsync(Guid userId)
-             => await context.Accounts
-                             .Include(x=>x.AccountType)
-                             .Where(x => x.UserId == userId && x.IsActive)
-                             .ToListAsync();
+    public IQueryable<Account> GetAccountsByUserIdAsync(Guid userId)
+             =>  context.Accounts
+                             .Include(x => x.AccountType)
+                             .Where(x => x.UserId == userId && x.IsActive);
 
 
     public async Task<Account?> GetByIdAsync(Guid id)

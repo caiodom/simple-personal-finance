@@ -14,8 +14,15 @@ public class BudgetEvaluationRequestedNotificationHandler(IUnitOfWork uow) : INo
 
     private async Task CheckAndNotify(Guid accountId, Guid userId, CategoryEnum category)
     {
-        var budget = await uow.Budgets.GetByUserAndCategoryAsync(userId, (int)category)
-                                        ?? throw new InvalidOperationException("Budget not found");
+        var budget = await uow.Budgets.GetByUserAndCategoryAsync(userId, (int)category);
+
+
+
+        if (budget == null)
+        {
+            // No budget set for this category
+            return;
+        }
 
         var transactions = await uow.Transactions.GetCategoryExpensesByAccountAndPeriod(
             accountId,

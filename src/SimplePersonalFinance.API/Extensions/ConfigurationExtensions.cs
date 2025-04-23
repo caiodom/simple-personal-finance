@@ -52,7 +52,6 @@ public static class ConfigurationExtensions
 
         return builder;
     }
-
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
@@ -66,10 +65,38 @@ public static class ConfigurationExtensions
                 .AddHealthCheck()
                 .AddControllers();
 
-
+        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped<IAuthUserHandler, AuthUserHandler>();
 
         return services;
+    }
+    public static WebApplication UseConfigurations(this WebApplication app)
+    {
+
+        Console.WriteLine(app.Environment.EnvironmentName);
+
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseExceptionHandler();
+        app.UseHttpsRedirection();
+        app.UseCorrelationId();
+        app.UsePerformanceTracking();
+
+        app.UseCors("CorsPolicy");
+        app.UseRequestLogging(); 
+        app.UseAuthorization();
+
+        app.UseHealthChecks()
+            .MapControllers();
+
+
+        app.Services.ApplyMigration(app.Environment);
+
+        return app;
     }
 
     private static IServiceCollection AddMiddlewares(this IServiceCollection services)
@@ -135,35 +162,6 @@ public static class ConfigurationExtensions
         });
 
         return services;
-    }
-
-    public static WebApplication UseConfigurations(this WebApplication app)
-    {
-
-        Console.WriteLine(app.Environment.EnvironmentName);
-
-        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName=="Docker")
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
-        app.UseExceptionHandler();
-        app.UseHttpsRedirection();
-        app.UseCorrelationId();
-        app.UsePerformanceTracking();
-
-        app.UseCors("CorsPolicy");
-        app.UseRequestLogging(); // This will log HTTP requests
-        app.UseAuthorization();
-
-        app.UseHealthChecks()
-            .MapControllers();
-        
-
-        app.Services.ApplyMigration(app.Environment );
-
-        return app;
     }
     private static WebApplication UseHealthChecks(this WebApplication app)
     {

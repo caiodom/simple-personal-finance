@@ -13,7 +13,6 @@ public class Money : ValueObject
         Amount = amount;
     }
 
-    // Factory method para criar instâncias de Money
     public static Result<Money> Create(decimal amount)
     {
 

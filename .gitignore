@@ -398,3 +398,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/infra/certs/your_domain.crt
+/infra/certs/your_domain.key

@@ -29,7 +29,6 @@ public class Email : ValueObject
 
     private static bool IsValidEmail(string email)
     {
-        // Improved email validation using System.Net.Mail
         try
         {
             var addr = new System.Net.Mail.MailAddress(email);

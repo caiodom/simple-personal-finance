@@ -29,7 +29,6 @@ public class AccountController(IMediator mediator,IAuthUserHandler authUserHandl
         return Ok(result);
     }
 
-    //get accounts by userId create.
     [HttpGet("user")]
     public async Task<IActionResult> GetByUserId()
     {

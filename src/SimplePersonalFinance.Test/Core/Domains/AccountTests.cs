@@ -133,7 +133,7 @@ public class AccountTests
                 TransactionTypeEnum.EXPENSE,
                 DateTime.Now));
 
-        Assert.Contains("Amount cannot be negative", exception.Message);
+        Assert.Contains("Transaction amount cannot be negative", exception.Message);
     }
 
     [Fact]
@@ -667,7 +667,7 @@ public class AccountTests
                 TransactionTypeEnum.EXPENSE));
 
         // A mensagem depende da implementação do seu Money.Create
-        Assert.Contains("Amount cannot be negative", exception.Message);
+        Assert.Contains("Transaction amount cannot be negative", exception.Message);
     }
 
 

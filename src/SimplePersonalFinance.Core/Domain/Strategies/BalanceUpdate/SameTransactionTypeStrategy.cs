@@ -13,25 +13,43 @@ public class SameTransactionTypeStrategy : IBalanceUpdateStrategy
         TransactionTypeEnum originalType,
         TransactionTypeEnum newType)
     {
-        if (originalValue == null)
-            throw new ArgumentNullException(nameof(originalValue), "Transaction value cannot be null");
+        ArgumentNullException.ThrowIfNull(originalValue, nameof(originalValue));
+        ArgumentNullException.ThrowIfNull(newValue, nameof(newValue));
 
-        if (newValue == null)
-            throw new ArgumentNullException(nameof(newValue), "Transaction value cannot be null");
+        if (IsIncome(originalType))
+            UpdateForIncome(account, originalValue, newValue);
 
-        if (originalType == TransactionTypeEnum.INCOME)
-        {
-            if (newValue.Amount > originalValue.Amount)
-                account.UpdateCurrentBalance(Money.Create(newValue.Amount - originalValue.Amount).Value);
-            else if (originalValue.Amount > newValue.Amount)
-                account.UpdateCurrentBalance(Money.Create(originalValue.Amount - newValue.Amount).Value.Scale(-1));
-        }
-        else
-        {
-            if (newValue.Amount > originalValue.Amount)
-                account.UpdateCurrentBalance(Money.Create(newValue.Amount - originalValue.Amount).Value.Scale(-1));
-            else if (originalValue.Amount > newValue.Amount)
-                account.UpdateCurrentBalance(Money.Create(originalValue.Amount - newValue.Amount).Value);
-        }
+        if (IsExpense(originalType))
+            UpdateForExpense(account, originalValue, newValue);
     }
+
+    private void UpdateForIncome(Account account, Money originalValue, Money newValue)
+    {
+        if (IsGreaterThan(newValue, originalValue))
+            account.UpdateCurrentBalance(CreateDifference(newValue, originalValue));
+
+        if (IsGreaterThan(originalValue, newValue))
+            account.UpdateCurrentBalance(CreateDifference(originalValue, newValue).Scale(-1));
+    }
+
+    private void UpdateForExpense(Account account, Money originalValue, Money newValue)
+    {
+        if (IsGreaterThan(newValue, originalValue))
+            account.UpdateCurrentBalance(CreateDifference(newValue, originalValue).Scale(-1));
+
+        if (IsGreaterThan(originalValue, newValue))
+            account.UpdateCurrentBalance(CreateDifference(originalValue, newValue));
+    }
+
+    private bool IsIncome(TransactionTypeEnum type) =>
+        type == TransactionTypeEnum.INCOME;
+
+    private bool IsExpense(TransactionTypeEnum type) =>
+        type == TransactionTypeEnum.EXPENSE;
+
+    private bool IsGreaterThan(Money first, Money second) =>
+        first.Amount > second.Amount;
+
+    private Money CreateDifference(Money greater, Money lesser) =>
+        Money.Create(greater.Amount - lesser.Amount).Value;
 }

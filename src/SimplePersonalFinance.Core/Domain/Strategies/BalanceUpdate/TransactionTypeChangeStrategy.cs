@@ -13,19 +13,34 @@ public class TransactionTypeChangeStrategy : IBalanceUpdateStrategy
         TransactionTypeEnum originalType,
         TransactionTypeEnum newType)
     {
-        if (originalValue == null)
-            throw new ArgumentNullException(nameof(originalValue), "Original transaction value cannot be null");
-        if (newValue == null)
-            throw new ArgumentNullException(nameof(newValue), "New transaction value cannot be null");
+        ArgumentNullException.ThrowIfNull(originalValue, nameof(originalValue));
+        ArgumentNullException.ThrowIfNull(newValue, nameof(newValue));
 
-        if (originalType == TransactionTypeEnum.INCOME)
-            account.UpdateCurrentBalance(originalValue.Scale(-1)); 
-        else
-            account.UpdateCurrentBalance(originalValue);
-
-        if (newType == TransactionTypeEnum.INCOME)
-            account.UpdateCurrentBalance(newValue);
-        else
-            account.UpdateCurrentBalance(newValue.Scale(-1));
+        ReverseOriginalTransactionEffect(account, originalValue, originalType);
+        ApplyNewTransactionEffect(account, newValue, newType);
     }
+
+    private void ReverseOriginalTransactionEffect(Account account, Money value, TransactionTypeEnum type)
+    {
+        if (IsIncome(type))
+            account.UpdateCurrentBalance(value.Scale(-1));
+
+        if (IsExpense(type))
+            account.UpdateCurrentBalance(value);
+    }
+
+    private void ApplyNewTransactionEffect(Account account, Money value, TransactionTypeEnum type)
+    {
+        if (IsIncome(type))
+            account.UpdateCurrentBalance(value);
+
+        if (IsExpense(type))
+            account.UpdateCurrentBalance(value.Scale(-1));
+    }
+
+    private bool IsIncome(TransactionTypeEnum type) =>
+        type == TransactionTypeEnum.INCOME;
+
+    private bool IsExpense(TransactionTypeEnum type) =>
+        type == TransactionTypeEnum.EXPENSE;
 }

@@ -16,6 +16,6 @@ public class CreateAccountCommandHandler(IUnitOfWork uow) : IRequestHandler<Crea
         await uow.Accounts.AddAsync(account);
         await uow.SaveChangesAsync();
 
-        return ResultViewModel<Guid>.Success(account.Id);
+        return ResultViewModel<Guid>.Success(account.Id, "Account created successfully");
     }
 }

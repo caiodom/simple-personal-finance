@@ -367,7 +367,7 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                     b.HasOne("SimplePersonalFinance.Core.Domain.Entities.Account", "Account")
                         .WithMany("Transactions")
                         .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SimplePersonalFinance.Core.Domain.Entities.Category", "Category")

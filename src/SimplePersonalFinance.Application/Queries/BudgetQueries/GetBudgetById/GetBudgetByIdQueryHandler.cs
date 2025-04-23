@@ -11,9 +11,8 @@ public class GetBudgetByIdQueryHandler(IUnitOfWork uow):IRequestHandler<GetBudge
     public async Task<ResultViewModel<BudgetViewModel>> Handle(GetBudgetByIdQuery request, CancellationToken cancellationToken)
     {
         var budget = await uow.Budgets.GetByIdAsync(request.Id);
-
         if (budget == null)
-            throw new EntityNotFoundException("Budget", request.Id);
+            return ResultViewModel<BudgetViewModel>.NotFound("Budget not found");
 
         return ResultViewModel<BudgetViewModel>.Success(BudgetViewModel.FromEntity(budget));
     }

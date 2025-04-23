@@ -13,7 +13,7 @@ public class GetAccountTransactionsQueryHandler(IUnitOfWork uow):IRequestHandler
         var accountTransactions = await uow.Accounts.GetAccountWithTransactionsAsync(request.AccountId);
 
         if (accountTransactions == null)
-            return ResultViewModel<AccountTransactionsViewModel>.Error("Account not found");
+            return ResultViewModel<AccountTransactionsViewModel>.NotFound("Account not found");
 
         return ResultViewModel<AccountTransactionsViewModel>.Success(AccountTransactionsViewModel.MapToViewModel(accountTransactions));
     }

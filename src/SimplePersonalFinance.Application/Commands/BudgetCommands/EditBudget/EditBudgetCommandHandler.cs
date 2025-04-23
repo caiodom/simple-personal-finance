@@ -16,6 +16,6 @@ public class EditBudgetCommandHandler(IUnitOfWork uow) : IRequestHandler<EditBud
         budget.UpdateBudget(request.LimitAmount,request.Month, request.Year);
 
         await uow.SaveChangesAsync();
-        return ResultViewModel<Guid>.Success(request.Id);
+        return ResultViewModel<Guid>.Success(request.Id, "Budget updated successfully");
     }
 }

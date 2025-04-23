@@ -15,7 +15,7 @@ public class DeleteAccountTransactionCommandHandler(IUnitOfWork uow):IRequestHan
         account.DeleteTransaction(request.Id);
         await uow.SaveChangesAsync();
 
-        return ResultViewModel<Guid>.Success(request.Id);
+        return ResultViewModel<Guid>.Success(request.Id, "Transaction deleted successfully");
     }
 }
 

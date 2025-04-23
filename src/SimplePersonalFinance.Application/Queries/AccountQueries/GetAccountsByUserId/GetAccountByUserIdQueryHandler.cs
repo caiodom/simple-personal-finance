@@ -1,8 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
-using SimplePersonalFinance.Core.Domain.Entities;
-using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Shared.Contracts;
 using SimplePersonalFinance.Shared.Extensions;
@@ -14,9 +12,8 @@ public class GetAccountByUserIdQueryHandler(IUnitOfWork uow) : IRequestHandler<G
     public async Task<ResultViewModel<PaginatedResult<AccountViewModel>>> Handle(GetAccountByUserIdQuery request, CancellationToken cancellationToken)
     {
         var accounts = uow.Accounts.GetAccountsByUserIdAsync(request.UserId);
-
         if (accounts == null)
-            throw new EntityNotFoundException("Account", request.UserId);
+            return ResultViewModel<PaginatedResult<AccountViewModel>>.NotFound("No accounts found");
 
         var results = await accounts.Select(a => AccountViewModel.MapToViewModel(a))
                                     .ToPaginatedResultAsync(request.PageNumber, request.PageSize,

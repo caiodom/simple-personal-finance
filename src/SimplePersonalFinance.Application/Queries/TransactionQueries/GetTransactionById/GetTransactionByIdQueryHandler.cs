@@ -12,7 +12,7 @@ public class GetTransactionByIdQueryHandler(IUnitOfWork uow) : IRequestHandler<G
        var transaction= await uow.Transactions.GetByIdAsync(request.Id);
 
         if (transaction == null)
-            return ResultViewModel<TransactionViewModel>.Error("Transaction not found");
+            return ResultViewModel<TransactionViewModel>.NotFound("Transaction not found");
 
         var transactionViewModel = TransactionViewModel.ToViewModel(transaction);
 

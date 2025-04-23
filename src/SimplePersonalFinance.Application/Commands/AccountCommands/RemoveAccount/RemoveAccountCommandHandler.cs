@@ -12,13 +12,12 @@ public class RemoveAccountCommandHandler(IUnitOfWork uow) : IRequestHandler<Remo
         var account = await uow.Accounts.GetFullAccountWithTransactionsAsync(request.Id);
 
         if (account == null)
-            throw new EntityNotFoundException("Account",request.Id);
+            return ResultViewModel<Guid>.Error("Account not found");
 
         account.DeleteAccount();
-
         await uow.SaveChangesAsync();
 
-        return ResultViewModel<Guid>.Success(account.Id);
+        return ResultViewModel<Guid>.Success(account.Id, "Account removed successfully");
     }
 }
 

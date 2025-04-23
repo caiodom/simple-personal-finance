@@ -17,6 +17,6 @@ public class CreateBudgetCommandHandler(IUnitOfWork uow) : IRequestHandler<Creat
         await uow.Budgets.AddAsync(budget);
         await uow.SaveChangesAsync();
 
-        return ResultViewModel<Guid>.Success(budget.Id);
+        return ResultViewModel<Guid>.Success(budget.Id, "Budget created successfully");
     }
 }

@@ -1,10 +1,17 @@
 ﻿using MediatR;
+using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Users;
 
 namespace SimplePersonalFinance.Application.Commands.UserCommands.LoginUser;
 
-public class LoginUserCommand : IRequest<LoginUserViewModel>
+public class LoginUserCommand : IRequest<ResultViewModel<LoginUserViewModel>>
 {
-    public string Email { get; set; }
-    public string Password { get; set; }
+    public string Email { get;}
+    public string Password { get;}
+
+    public LoginUserCommand(string email,string password)
+    {
+        Email = email;
+        Password = password;
+    }
 }

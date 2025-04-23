@@ -13,9 +13,9 @@ public class EditAccountTransactionCommandHandler(IUnitOfWork uow) : IRequestHan
             return ResultViewModel<Guid>.Error("Account not found");
 
         account.EditTransaction(request.Id, request.Amount, request.Description, request.CategoryId, request.TransactionTypeId);
-
         await uow.SaveChangesAsync();
-        return ResultViewModel<Guid>.Success(request.Id);
+
+        return ResultViewModel<Guid>.Success(request.Id, "Transaction updated successfully");
     }
 }
 

@@ -14,7 +14,7 @@ public class GetBudgetsQueryHandler(IUnitOfWork uow) : IRequestHandler<GetBudget
         var budgets = uow.Budgets.GetAllByUserId(request.UserId);
 
         if (budgets == null)
-            return ResultViewModel<PaginatedResult<BudgetViewModel>>.Error("No budgets found for this account.");
+            return ResultViewModel<PaginatedResult<BudgetViewModel>>.NotFound("No budgets found for this account.");
 
         var results = await budgets
                         .Select(x => BudgetViewModel.FromEntity(x))

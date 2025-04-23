@@ -16,7 +16,7 @@ public class CreateAccountTransactionCommandHandler(IUnitOfWork uow):IRequestHan
         uow.Accounts.AddAccountTransaction(transaction);
         await uow.SaveChangesAsync();
 
-        return ResultViewModel<Guid>.Success(transaction.Id);
+        return ResultViewModel<Guid>.Success(transaction.Id, "Transaction created successfully");
     }
 }
 

@@ -4,20 +4,18 @@ using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Commands.BudgetCommands.RemoveBudget;
 
-public class RemoveBudgetCommandHandler(IUnitOfWork uow):IRequestHandler<RemoveBudgetCommand, ResultViewModel>
+public class RemoveBudgetCommandHandler(IUnitOfWork uow):IRequestHandler<RemoveBudgetCommand, ResultViewModel<Guid>>
 {
-    public async Task<ResultViewModel> Handle(RemoveBudgetCommand request, CancellationToken cancellationToken)
+    public async Task<ResultViewModel<Guid>> Handle(RemoveBudgetCommand request, CancellationToken cancellationToken)
     {
         var budget= await uow.Budgets.GetByIdAsync(request.Id);
-
         if (budget == null)
-            return ResultViewModel.Error("Budget not found");
+            return ResultViewModel<Guid>.Error("Budget not found");
 
         budget.SetAsDeleted();
-
         await uow.SaveChangesAsync();
 
-        return ResultViewModel.Success("Budget removed successfully");
+        return ResultViewModel<Guid>.Success(budget.Id,"Budget removed successfully");
     }
 }   
 

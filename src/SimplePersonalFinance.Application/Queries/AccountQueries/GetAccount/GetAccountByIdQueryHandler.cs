@@ -10,9 +10,8 @@ public class GetAccountByIdQueryHandler(IUnitOfWork uow) : IRequestHandler<GetAc
     public async Task<ResultViewModel<AccountViewModel>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
         var account =await uow.Accounts.GetByIdAsync(request.Id);
-
         if(account is null)
-            return ResultViewModel<AccountViewModel>.Error("Account not found");
+            return ResultViewModel<AccountViewModel>.NotFound("Account not found");
 
         return ResultViewModel<AccountViewModel>.Success(AccountViewModel.MapToViewModel(account));
     }

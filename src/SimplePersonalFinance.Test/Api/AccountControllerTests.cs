@@ -3,17 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SimplePersonalFinance.API.Controllers;
 using SimplePersonalFinance.API.Services.Interfaces;
-using SimplePersonalFinance.Application.Commands.CreateAccount;
-using SimplePersonalFinance.Application.Commands.CreateTransaction;
-using SimplePersonalFinance.Application.Commands.EditTransaction;
-using SimplePersonalFinance.Application.Commands.RemoveTransaction;
-using SimplePersonalFinance.Application.Queries.GetAccount;
-using SimplePersonalFinance.Application.Queries.GetAccountsByUserId;
-using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
+using SimplePersonalFinance.Application.Commands.AccountCommands.CreateAccount;
+using SimplePersonalFinance.Application.Commands.AccountCommands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.RemoveTransaction;
+using SimplePersonalFinance.Application.Queries.AccountQueries.GetAccount;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
 using SimplePersonalFinance.Core.Domain.Enums;
-using SimplePersonalFinance.Core.Domain.ValueObjects;
 
 namespace SimplePersonalFinance.Test.API.Controllers;
 

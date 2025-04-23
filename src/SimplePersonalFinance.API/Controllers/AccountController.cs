@@ -2,14 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.API.Services.Interfaces;
-using SimplePersonalFinance.Application.Commands.CreateAccount;
-using SimplePersonalFinance.Application.Commands.CreateTransaction;
-using SimplePersonalFinance.Application.Commands.EditTransaction;
-using SimplePersonalFinance.Application.Commands.RemoveAccount;
-using SimplePersonalFinance.Application.Commands.RemoveTransaction;
-using SimplePersonalFinance.Application.Queries.GetAccount;
-using SimplePersonalFinance.Application.Queries.GetAccountsByUserId;
-using SimplePersonalFinance.Application.Queries.GetAccountTransactions;
+using SimplePersonalFinance.Application.Commands.AccountCommands.CreateAccount;
+using SimplePersonalFinance.Application.Commands.AccountCommands.CreateTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.RemoveAccount;
+using SimplePersonalFinance.Application.Commands.AccountCommands.RemoveTransaction;
+using SimplePersonalFinance.Application.Queries.AccountQueries.GetAccount;
+using SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountsByUserId;
+using SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountTransactions;
 using System.Security.Claims;
 
 namespace SimplePersonalFinance.API.Controllers;

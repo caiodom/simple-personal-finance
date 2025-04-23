@@ -3,15 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SimplePersonalFinance.API.Controllers;
 using SimplePersonalFinance.API.Services.Interfaces;
-using SimplePersonalFinance.Application.Commands.CreateBudget;
-using SimplePersonalFinance.Application.Commands.EditBudget;
-using SimplePersonalFinance.Application.Commands.RemoveBudget;
-using SimplePersonalFinance.Application.Queries.GetBudgetById;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.CreateBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.EditBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.RemoveBudget;
+using SimplePersonalFinance.Application.Queries.BudgetQueries.GetBudgetById;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Budgets;
-using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
-using Xunit;
 
 namespace SimplePersonalFinance.Tests.API.Controllers;
 

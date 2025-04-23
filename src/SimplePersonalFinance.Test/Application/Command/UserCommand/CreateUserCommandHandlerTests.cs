@@ -1,5 +1,5 @@
 ﻿using Moq;
-using SimplePersonalFinance.Application.Commands.CreateUser;
+using SimplePersonalFinance.Application.Commands.UserCommands.CreateUser;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;

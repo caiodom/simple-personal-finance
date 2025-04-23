@@ -38,11 +38,6 @@ public class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IHostEnvir
                 new { Errors = ex.Errors }),
 
 
-            Core.Domain.Exceptions.InvalidOperationException ex => CreateProblemDetails(
-                StatusCodes.Status400BadRequest,
-                "Invalid Operation",
-                ex.Message),
-
             DomainException ex => CreateProblemDetails(
                 StatusCodes.Status400BadRequest,
                 "Domain Error",

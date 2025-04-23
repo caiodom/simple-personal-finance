@@ -3,7 +3,7 @@ using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SimplePersonalFinance.Application.Behaviors;
-using SimplePersonalFinance.Application.Commands.CreateUser;
+using SimplePersonalFinance.Application.Commands.UserCommands.CreateUser;
 using SimplePersonalFinance.Application.Validators;
 
 namespace SimplePersonalFinance.Application.Extensions;

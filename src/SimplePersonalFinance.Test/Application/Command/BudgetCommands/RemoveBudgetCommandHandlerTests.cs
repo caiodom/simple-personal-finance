@@ -1,5 +1,5 @@
 ﻿using Moq;
-using SimplePersonalFinance.Application.Commands.RemoveBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.RemoveBudget;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Interfaces.Data;

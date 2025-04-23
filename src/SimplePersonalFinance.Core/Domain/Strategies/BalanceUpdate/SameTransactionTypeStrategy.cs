@@ -1,6 +1,7 @@
 ﻿using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
+using SimplePersonalFinance.Core.Interfaces.Domain.Strategies;
 
 namespace SimplePersonalFinance.Core.Domain.Strategies.BalanceUpdate;
 

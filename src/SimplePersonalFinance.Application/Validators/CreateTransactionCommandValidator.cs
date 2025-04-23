@@ -1,8 +1,5 @@
 ﻿using FluentValidation;
-using SimplePersonalFinance.Application.Commands.CreateAccount;
-using SimplePersonalFinance.Application.Commands.CreateTransaction;
-using SimplePersonalFinance.Core.Domain.ValueObjects;
-using SimplePersonalFinance.Core.Interfaces.Data;
+using SimplePersonalFinance.Application.Commands.AccountCommands.CreateTransaction;
 
 namespace SimplePersonalFinance.Application.Validators
 {

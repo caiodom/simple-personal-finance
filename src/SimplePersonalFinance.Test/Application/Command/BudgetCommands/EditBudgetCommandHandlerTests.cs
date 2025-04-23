@@ -1,5 +1,5 @@
 ﻿using Moq;
-using SimplePersonalFinance.Application.Commands.EditBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.EditBudget;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.Exceptions;

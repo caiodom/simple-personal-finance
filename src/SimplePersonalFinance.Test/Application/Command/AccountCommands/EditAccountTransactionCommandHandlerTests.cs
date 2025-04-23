@@ -1,5 +1,5 @@
 ﻿using Moq;
-using SimplePersonalFinance.Application.Commands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.EditTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;

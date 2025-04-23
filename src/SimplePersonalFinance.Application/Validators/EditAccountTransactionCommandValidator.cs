@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SimplePersonalFinance.Application.Commands.EditTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.EditTransaction;
 
 namespace SimplePersonalFinance.Application.Validators;
 

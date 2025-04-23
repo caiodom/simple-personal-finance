@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SimplePersonalFinance.Application.Commands.CreateBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.CreateBudget;
 
 namespace SimplePersonalFinance.Application.Validators;
 

@@ -1,5 +1,5 @@
 ﻿using Moq;
-using SimplePersonalFinance.Application.Commands.RemoveTransaction;
+using SimplePersonalFinance.Application.Commands.AccountCommands.RemoveTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;

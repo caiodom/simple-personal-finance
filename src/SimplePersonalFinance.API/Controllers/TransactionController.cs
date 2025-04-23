@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimplePersonalFinance.Application.Queries.GetTransactionById;
-using SimplePersonalFinance.Application.Queries.GetTransactions;
+using SimplePersonalFinance.Application.Queries.TransactionQueries.GetTransactionById;
+using SimplePersonalFinance.Application.Queries.TransactionQueries.GetTransactions;
 
 namespace SimplePersonalFinance.API.Controllers;
 

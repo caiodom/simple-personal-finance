@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.API.Services.Interfaces;
-using SimplePersonalFinance.Application.Commands.CreateBudget;
-using SimplePersonalFinance.Application.Commands.EditBudget;
-using SimplePersonalFinance.Application.Commands.RemoveBudget;
-using SimplePersonalFinance.Application.Queries.GetBudget;
-using SimplePersonalFinance.Application.Queries.GetBudgetById;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.CreateBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.EditBudget;
+using SimplePersonalFinance.Application.Commands.BudgetCommands.RemoveBudget;
+using SimplePersonalFinance.Application.Queries.BudgetQueries.GetBudget;
+using SimplePersonalFinance.Application.Queries.BudgetQueries.GetBudgetById;
 
 namespace SimplePersonalFinance.API.Controllers;
 

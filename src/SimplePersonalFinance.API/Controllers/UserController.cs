@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimplePersonalFinance.Application.Commands.CreateUser;
-using SimplePersonalFinance.Application.Commands.LoginUser;
-using SimplePersonalFinance.Application.Queries.GetUser;
+using SimplePersonalFinance.Application.Commands.UserCommands.CreateUser;
+using SimplePersonalFinance.Application.Commands.UserCommands.LoginUser;
+using SimplePersonalFinance.Application.Queries.UserQueries.GetUser;
 
 namespace SimplePersonalFinance.API.Controllers;
 

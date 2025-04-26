@@ -135,7 +135,7 @@ public class MoneyTests
         string result = money.ToString();
 
         // Assert
-        Assert.Equal("123,45", result);
+        Assert.Equal("123.45", result);
     }
 
     [Fact]

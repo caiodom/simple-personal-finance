@@ -1,5 +1,6 @@
 ﻿using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Results;
+using System.Globalization;
 
 namespace SimplePersonalFinance.Core.Domain.ValueObjects;
 
@@ -50,7 +51,7 @@ public class Money : ValueObject
 
     public bool IsZero() => Amount == 0;
 
-    public override string ToString() => $"{Amount:F2}";
+    public override string ToString() => Amount.ToString("F2", CultureInfo.InvariantCulture);
 
     protected override IEnumerable<object> GetEqualityComponents()
     {

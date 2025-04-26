@@ -1,6 +1,7 @@
 ﻿using Moq;
 using SimplePersonalFinance.Application.Commands.UserCommands.CreateUser;
 using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 using SimplePersonalFinance.Core.Interfaces.Services;
@@ -57,13 +58,7 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email))
             .ReturnsAsync(true); // Email already exists
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Email already exists", result.Message);
-        _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
     }
 }

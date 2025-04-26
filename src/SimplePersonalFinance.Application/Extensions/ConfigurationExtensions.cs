@@ -20,15 +20,21 @@ public static class ConfigurationExtensions
 
     public static IServiceCollection AddMediaTR(this IServiceCollection services)
     {
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>());
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddMediatR(cfg =>
+        {
+           cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>();
+           cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+           cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+         });
+
+        /* services.AddValidatorsFromAssemblyContaining<CreateUserCommandValidator>();
+         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));*/
         return services;
     }
 
     public static IServiceCollection AddValidations(this IServiceCollection services)
     {
-        services.AddFluentValidationAutoValidation()
-                .AddValidatorsFromAssemblyContaining<CreateUserCommandValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateUserCommandValidator>();
         return services;
     }
 }

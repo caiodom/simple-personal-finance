@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Commands.AccountCommands.RemoveTransaction;
@@ -10,7 +11,7 @@ public class DeleteAccountTransactionCommandHandler(IUnitOfWork uow):IRequestHan
     {
         var account = await uow.Accounts.GetAccountWithSpecificTransactionAsync(request.AccountId, request.Id);
         if (account == null)
-            return ResultViewModel<Guid>.Error("Account not found");
+            throw new EntityNotFoundException("Account", request.AccountId);
 
         account.DeleteTransaction(request.Id);
         await uow.SaveChangesAsync();

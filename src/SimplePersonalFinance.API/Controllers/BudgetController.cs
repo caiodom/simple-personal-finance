@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.API.Controllers.Base;
+using SimplePersonalFinance.API.Requests.BudgetRequests;
 using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Commands.BudgetCommands.CreateBudget;
 using SimplePersonalFinance.Application.Commands.BudgetCommands.EditBudget;
@@ -11,48 +12,60 @@ using SimplePersonalFinance.Application.Queries.BudgetQueries.GetBudgetById;
 
 namespace SimplePersonalFinance.API.Controllers;
 
-[Route("api/budget")]
+[Route("api/budgets")]
 [Authorize]
-public class BudgetController(IMediator mediator, IAuthUserHandler authUserHandler,ILogger<BudgetController> logger) : BaseController(logger)
+public class BudgetController : BaseController
 {
+    private readonly IMediator _mediator;
+
+    public BudgetController(IMediator mediator,
+                            IAuthUserHandler authUserHandler,
+                            ILogger<BudgetController> logger)
+        : base(logger, authUserHandler)
+    {
+        _mediator = mediator;
+    }
 
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        Guid userId = authUserHandler.GetUserId();
-        var result = await mediator.Send(new GetBudgetsQuery(userId));
+        Guid userId = GetUserId();
+        var result = await _mediator.Send(new GetBudgetsQuery(userId));
         return HandleResult(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await mediator.Send(new GetBudgetByIdQuery(id));
+        var result = await _mediator.Send(new GetBudgetByIdQuery(id));
         return HandleResult(result);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBudget([FromBody] CreateBudgetCommand command)
+    public async Task<IActionResult> CreateBudget(CreateBudgetRequest request)
     {
-        Guid userId = authUserHandler.GetUserId();
-        command.SetUserId(userId);
-        var result = await mediator.Send(command);
+        Guid userId = GetUserId();
+        var command = new CreateBudgetCommand(userId,request.Category, request.LimitAmount, request.Month, request.Year);
+        var result = await _mediator.Send(command);
         return HandleResult(result);
     }
 
-    [HttpPut]
-    public async Task<IActionResult> EditBudget([FromBody] EditBudgetCommand command)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditBudget(Guid id, EditBudgetRequest request)
     {
-        var result = await mediator.Send(command);
+        ValidateIds(id);
+
+        var command = new EditBudgetCommand(id, request.LimitAmount, request.Month, request.Year);
+        var result = await _mediator.Send(command);
+
         return HandleResult(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBudget(Guid id)
     {
-        var result = await mediator.Send(new RemoveBudgetCommand(id));
+        var result = await _mediator.Send(new RemoveBudgetCommand(id));
+
         return HandleResult(result);
     }
-
-
 }

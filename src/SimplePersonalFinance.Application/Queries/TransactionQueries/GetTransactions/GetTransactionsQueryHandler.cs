@@ -14,7 +14,7 @@ public class GetTransactionsQueryHandler(IUnitOfWork uow) : IRequestHandler<GetT
         var transactions = uow.Transactions.GetAllByAccountId(request.AccountId);
 
         if(transactions == null)
-            return ResultViewModel<PaginatedResult<TransactionViewModel>>.NotFound("No transactions found for this account.");
+            throw new InvalidOperationException("No transactions found for your account");
 
         var results =await  transactions
                         .Select(x => TransactionViewModel.ToViewModel(x))

@@ -2,6 +2,7 @@
 using SimplePersonalFinance.Application.Commands.BudgetCommands.CreateBudget;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -26,8 +27,8 @@ public class CreateBudgetCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateBudgetCommand(CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
-        command.SetUserId(userId);
+        var command = new CreateBudgetCommand(userId,CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
+        
 
         _budgetRepositoryMock.Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT))
             .ReturnsAsync((Budget)null);
@@ -47,20 +48,13 @@ public class CreateBudgetCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateBudgetCommand(CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
-        command.SetUserId(userId);
+        var command = new CreateBudgetCommand(userId,CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var existingBudget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
 
-        _budgetRepositoryMock.Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT))
+        _budgetRepositoryMock.Setup(r => r.GetByUserAndCategoryAsync(It.IsAny<Guid>(),It.IsAny<int>()))
             .ReturnsAsync(existingBudget);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Budget already exists for this category and user.", result.Message);
-        _budgetRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Budget>()), Times.Never);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
     }
 }

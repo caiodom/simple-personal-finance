@@ -13,7 +13,7 @@ public class GetAccountByUserIdQueryHandler(IUnitOfWork uow) : IRequestHandler<G
     {
         var accounts = uow.Accounts.GetAccountsByUserIdAsync(request.UserId);
         if (accounts == null)
-            return ResultViewModel<PaginatedResult<AccountViewModel>>.NotFound("No accounts found");
+              throw new InvalidOperationException("No accounts found for your user");
 
         var results = await accounts.Select(a => AccountViewModel.MapToViewModel(a))
                                     .ToPaginatedResultAsync(request.PageNumber, request.PageSize,

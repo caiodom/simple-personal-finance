@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Services;
 
@@ -22,7 +23,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
         var emailExists = await _uow.Users.CheckEmailAsync(request.Email);
 
         if (emailExists)
-            return ResultViewModel<Guid>.Error("Email already exists");
+            throw new BusinessRuleViolationException("Duplicated Email","Email already exists");
 
         var passwordHash = _authService.ComputeSha256Hash(request.Password);
 

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Users;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Services;
 
@@ -25,7 +26,8 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, ResultV
 
 
         if (user is null)
-            return ResultViewModel<LoginUserViewModel>.Error("Invalid email or password");
+            throw new BusinessRuleViolationException("Invalid Credentials",
+                "The email or password provided is incorrect. Please try again.");
 
 
         var token = _authService.GenerateJwtToken(user.Id, user.Email.Value, user.Role);

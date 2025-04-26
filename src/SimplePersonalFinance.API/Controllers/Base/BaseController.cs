@@ -1,91 +1,76 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SimplePersonalFinance.API.Services.Interfaces;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Application.ViewModels;
-using System.Diagnostics;
 
-namespace SimplePersonalFinance.API.Controllers.Base
+namespace SimplePersonalFinance.API.Controllers.Base;
+
+[ApiController]
+public abstract class BaseController : ControllerBase
 {
-    public abstract class BaseController : ControllerBase
+    private readonly ILogger _logger;
+    private readonly IAuthUserHandler _authUserHandler;
+
+    protected BaseController(ILogger logger, IAuthUserHandler authUserHandler)
     {
-        private readonly ILogger _logger;
-        protected BaseController(ILogger logger)
+        _logger = logger;
+        _authUserHandler = authUserHandler;
+    }
+
+    protected IActionResult HandleResult(ResultViewModel result)
+    {
+        if (result == null)
         {
-            _logger = logger;
+            _logger.LogWarning("Result was null when handling response");
+            throw new DomainException("Invalid response received");
         }
 
-        protected IActionResult HandleResult<T>(ResultViewModel<T> result)
+        _logger.LogInformation("Request succeeded: {Message}", result.Message);
+        return Ok(result);
+    }
+
+    protected IActionResult CreatedResult<T>(string actionName, object routeValues, ResultViewModel<T> result)
+    {
+        if (result == null)
         {
-            if (result == null)
+            _logger.LogWarning("Result was null when handling creation response");
+            throw new DomainException("Invalid response received");
+        }
+
+        _logger.LogInformation("Resource created successfully: {Message}", result.Message);
+        return CreatedAtAction(actionName, routeValues, result);
+    }
+
+    protected void ValidateIds(params Guid[] ids)
+    {
+        if (ids == null || ids.Length == 0)
+        {
+            var message = "No IDs provided for validation";
+            _logger.LogWarning(message);
+            throw new ValidationException(message);
+        }
+
+        foreach (var id in ids)
+        {
+            if (id == Guid.Empty)
             {
-                _logger.LogWarning("Result was null when handling typed response");
-                return BadRequest("Invalid response received");
+                var message = $"Invalid ID provided: {id}";
+                _logger.LogWarning(message);
+                throw new ValidationException(message);
             }
-
-            return result.ResponseType switch
-            {
-                ResponseType.Ok => OkResultHandler(result),
-                ResponseType.NotFound => NotFoundResultHandler(result),
-                ResponseType.Error => BadRequestResultHandler(result),
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(result.ResponseType),
-                    $"Unexpected response type: {result.ResponseType}")
-            };
         }
+    }
 
-        protected IActionResult HandleResult(ResultViewModel result)
+    protected Guid GetUserId()
+    {
+        Guid userId = _authUserHandler.GetUserId();
+        if (userId == Guid.Empty)
         {
-            if (result == null)
-            {
-                _logger.LogWarning("Result was null when handling response");
-                return BadRequest("Invalid response received");
-            }
-
-            return result.ResponseType switch
-            {
-                ResponseType.Ok => OkResultHandler(result),
-                ResponseType.NotFound => NotFoundResultHandler(result),
-                ResponseType.Error => BadRequestResultHandler(result),
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(result.ResponseType),
-                    $"Unexpected response type: {result.ResponseType}")
-            };
+            var message = "User ID is empty";
+            _logger.LogWarning(message);
+            throw new DomainException(message);
         }
 
-        protected IActionResult CreatedResult<T>(string actionName, object routeValues, ResultViewModel<T> result)
-        {
-            if (!result.IsSuccess)
-            {
-                return HandleResult(result);
-            }
-
-            _logger.LogInformation("Resource created successfully: {Message}", result.Message);
-            return CreatedAtAction(actionName, routeValues, result);
-        }
-
-        private OkObjectResult OkResultHandler<T>(ResultViewModel<T> result)
-        {
-            _logger.LogInformation("Request succeeded: {Message}", result.Message);
-            return Ok(result);
-        }
-
-        private OkObjectResult OkResultHandler(ResultViewModel result)
-        {
-            _logger.LogInformation("Request succeeded: {Message}", result.Message);
-            return Ok(result);
-        }
-
-        private NotFoundObjectResult NotFoundResultHandler(ResultViewModel result) 
-        {
-            _logger.LogWarning("Resource not found: {Message}", result.Message);
-            return NotFound(result);
-        }
-
-        private BadRequestObjectResult BadRequestResultHandler(ResultViewModel result)
-        {
-            _logger.LogError("Request failed: {Message}", result.Message);
-            return BadRequest(result);
-        }
-
-
+        return userId;
     }
 }
-

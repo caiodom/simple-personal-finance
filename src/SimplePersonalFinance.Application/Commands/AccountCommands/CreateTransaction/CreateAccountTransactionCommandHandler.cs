@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Commands.AccountCommands.CreateTransaction;
@@ -10,7 +11,7 @@ public class CreateAccountTransactionCommandHandler(IUnitOfWork uow):IRequestHan
     {
         var account= await uow.Accounts.GetByIdAsync(request.AccountId);
         if (account == null)
-            return ResultViewModel<Guid>.Error("Account not found");
+            throw new EntityNotFoundException("Account",request.AccountId);
 
         var transaction=account.AddTransaction(request.Description,request.Amount,request.CategoryId,request.TransactionTypeId, request.Date);
         uow.Accounts.AddAccountTransaction(transaction);

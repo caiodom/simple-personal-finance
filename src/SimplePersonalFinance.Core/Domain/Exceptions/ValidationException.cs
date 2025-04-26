@@ -9,5 +9,12 @@ public class ValidationException : DomainException
     {
         Errors = errors;
     }
+
+    public ValidationException(string message)
+    : base(message)
+    {
+        Errors = new Dictionary<string, string[]> { { "General", new[] { message } } };
+    }
+
 }
 

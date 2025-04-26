@@ -12,7 +12,7 @@ public class GetBudgetByIdQueryHandler(IUnitOfWork uow):IRequestHandler<GetBudge
     {
         var budget = await uow.Budgets.GetByIdAsync(request.Id);
         if (budget == null)
-            return ResultViewModel<BudgetViewModel>.NotFound("Budget not found");
+            throw new EntityNotFoundException("Budget", request.Id);
 
         return ResultViewModel<BudgetViewModel>.Success(BudgetViewModel.FromEntity(budget));
     }

@@ -2,6 +2,7 @@
 using SimplePersonalFinance.Application.Commands.BudgetCommands.RemoveBudget;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
@@ -51,12 +52,8 @@ public class RemoveBudgetCommandHandlerTests
         _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId))
             .ReturnsAsync((Budget)null);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Budget not found", result.Message);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
+        
     }
 }

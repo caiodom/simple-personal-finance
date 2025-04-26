@@ -2,6 +2,7 @@
 using SimplePersonalFinance.Application.Commands.AccountCommands.CreateTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
@@ -78,13 +79,7 @@ public class CreateTransactionCommandHandlerTests
         _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId))
             .ReturnsAsync((Account)null);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Account not found", result.Message);
-        _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Never);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
 }

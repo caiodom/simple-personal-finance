@@ -26,8 +26,7 @@ public class CreateAccountCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateAccountCommand(AccountTypeEnum.CHECKING, "Test Account", 1000M);
-        command.SetUserId(userId);
+        var command = new CreateAccountCommand(userId,AccountTypeEnum.CHECKING, "Test Account", 1000M);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

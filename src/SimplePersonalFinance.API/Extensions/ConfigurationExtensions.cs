@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using SimplePersonalFinance.API.Filters;
 using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.API.Services;
 using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Extensions;
-using SimplePersonalFinance.Infrastructure.Data.Context;
 using SimplePersonalFinance.Infrastructure.Data.Extensions;
 using SimplePersonalFinance.Infrastructure.Extensions;
 
@@ -55,7 +55,6 @@ public static class ConfigurationExtensions
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
-                .AddExceptionHandler<ApiExceptionHandler>()
                 .AddProblemDetails()
                 .AddMiddlewares()
                 .AddApplicationConfigurations()
@@ -63,7 +62,9 @@ public static class ConfigurationExtensions
                 .AddEndpointsApiExplorer()
                 .AddSwaggerConfigurations()
                 .AddHealthCheck()
-                .AddControllers();
+                .AddControllers(options => {
+                    options.Filters.Add<ValidationFilter>();
+                });
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped<IAuthUserHandler, AuthUserHandler>();
@@ -83,11 +84,10 @@ public static class ConfigurationExtensions
 
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
-        app.UseCorrelationId();
-        app.UsePerformanceTracking();
+        app.UseApiMiddlewares();
 
         app.UseCors("CorsPolicy");
-        app.UseRequestLogging(); 
+        app.UseRequestLogging();
         app.UseAuthorization();
 
         app.UseHealthChecks()
@@ -101,6 +101,7 @@ public static class ConfigurationExtensions
 
     private static IServiceCollection AddMiddlewares(this IServiceCollection services)
     {
+        services.AddTransient<ExceptionMiddleware>();
         services.AddTransient<CorrelationIdMiddleware>();
         services.AddTransient<PerformanceMiddleware>();
         return services;
@@ -167,7 +168,7 @@ public static class ConfigurationExtensions
     {
         app.UseHealthChecks("/api/health", new HealthCheckOptions
         {
-            ResponseWriter=UIResponseWriter.WriteHealthCheckUIResponse
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
         });
 
         return app;
@@ -190,12 +191,14 @@ public static class ConfigurationExtensions
 
         return builder;
     }
-    private static IApplicationBuilder UseCorrelationId(this IApplicationBuilder builder)
+    private static IApplicationBuilder UseApiMiddlewares(this IApplicationBuilder builder)
     {
-        return builder.UseMiddleware<CorrelationIdMiddleware>();
+        builder.UseMiddleware<ExceptionMiddleware>();
+        builder.UseMiddleware<PerformanceMiddleware>();
+        builder.UseMiddleware<CorrelationIdMiddleware>();
+
+        return builder;
     }
-    private static IApplicationBuilder UsePerformanceTracking(this IApplicationBuilder builder)
-    {
-        return builder.UseMiddleware<PerformanceMiddleware>();
-    }
+
+
 }

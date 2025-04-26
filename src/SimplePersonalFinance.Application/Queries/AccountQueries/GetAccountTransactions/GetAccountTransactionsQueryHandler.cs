@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 
 namespace SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountTransactions;
@@ -13,7 +14,7 @@ public class GetAccountTransactionsQueryHandler(IUnitOfWork uow):IRequestHandler
         var accountTransactions = await uow.Accounts.GetAccountWithTransactionsAsync(request.AccountId);
 
         if (accountTransactions == null)
-            return ResultViewModel<AccountTransactionsViewModel>.NotFound("Account not found");
+            throw new EntityNotFoundException("Account", request.AccountId);
 
         return ResultViewModel<AccountTransactionsViewModel>.Success(AccountTransactionsViewModel.MapToViewModel(accountTransactions));
     }

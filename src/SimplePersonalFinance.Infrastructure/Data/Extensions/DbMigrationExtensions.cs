@@ -1,70 +1,40 @@
-﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Polly;
 using SimplePersonalFinance.Infrastructure.Data.Context;
-using System;
 
 namespace SimplePersonalFinance.Infrastructure.Data.Extensions;
 
 public static class DbMigrationExtensions
 {
-    /// <summary>
-    /// Generate migrations before running this method
-    /// </summary>
-    public static void ApplyMigration(this IServiceProvider serviceProvider, IWebHostEnvironment env)
+    public static async Task ApplyMigrationsAsync(
+        this IServiceProvider serviceProvider,
+        CancellationToken cancellationToken = default)
     {
-        // Create a new scope for resolving services
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetService<AppDbContext>();
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var logger = scope.ServiceProvider
-                  .GetRequiredService<ILoggerFactory>()
-                  .CreateLogger("DbMigrationExtensions");
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("DbMigrationExtensions");
 
-        if (dbContext is null)
-            throw new ArgumentNullException(nameof(serviceProvider), "The AppDbContext could not be resolved from the service provider.");
+        var pendingMigrations = (await dbContext.Database
+                .GetPendingMigrationsAsync(cancellationToken))
+            .ToArray();
 
-        int maxRetries = 5;
-        int delayInSeconds = 5;
-
-        var retryPolicy = Policy
-            .Handle<Exception>()
-            .WaitAndRetry(
-                maxRetries,
-                retryAttempt => TimeSpan.FromSeconds(delayInSeconds),
-                (exception, timeSpan, retryCount, context) =>
-                {
-                    //Console.WriteLine($"Failed to apply migrations in the context {typeof(AppDbContext).Name}, attempt {retryCount}/{maxRetries}. Error: {exception.Message}");
-                    logger.LogWarning("Failed to apply migrations in context {ContextName}. Attempt {RetryCount}/{MaxRetries}. Error: {ErrorMessage}",
-                                        typeof(AppDbContext).Name,
-                                        retryCount,
-                                        maxRetries,
-                                        exception.Message);
-                });
-
-        retryPolicy.Execute(() =>
+        if (pendingMigrations.Length == 0)
         {
-            if (env.IsDevelopment() || env.IsEnvironment("Docker"))
-            {
-                // Check for pending migrations
-                var pendingMigrations = dbContext.Database.GetPendingMigrations();
-                if (pendingMigrations.Any())
-                {
+            logger.LogInformation("No pending database migrations found");
+            return;
+        }
 
-                    //Console.WriteLine($"Applying {pendingMigrations.Count()} pending migrations...");
-                    logger.LogInformation("Applying {PendingMigrations} pending migrations...",
-                        pendingMigrations.Count());
-                    dbContext.Database.Migrate();
-                }
-                else
-                {
-                    //Console.WriteLine("No pending migrations found.");
-                    logger.LogInformation("No pending migrations found.");
-                }
-            }
-        });
+        logger.LogInformation(
+            "Applying {PendingMigrationCount} pending database migrations",
+            pendingMigrations.Length);
+
+        await dbContext.Database.MigrateAsync(cancellationToken);
+
+        logger.LogInformation("Database migrations applied successfully");
     }
-
 }

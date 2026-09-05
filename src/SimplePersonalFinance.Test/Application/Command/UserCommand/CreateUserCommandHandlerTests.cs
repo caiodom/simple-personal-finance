@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using SimplePersonalFinance.Application.Commands.UserCommands.CreateUser;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Exceptions;
@@ -13,52 +13,61 @@ public class CreateUserCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IAuthService> _authServiceMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
-   
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _authServiceMock= new Mock<IAuthService>();
+        _authServiceMock = new Mock<IAuthService>();
         _unitOfWorkMock.Setup(uow => uow.Users).Returns(_userRepositoryMock.Object);
-        _handler = new CreateUserCommandHandler(_authServiceMock.Object,_unitOfWorkMock.Object);
+        _handler = new CreateUserCommandHandler(_authServiceMock.Object, _unitOfWorkMock.Object);
     }
 
     [Fact]
-    public async Task Handle_WithUniqueEmail_ShouldCreateUserAndReturnSuccess()
+    public async Task Handle_WithUniqueEmail_ShouldHashPasswordAndCreateUser()
     {
-        // Arrange
-        // Arrange
-        var command = new CreateUserCommand("Test User", "Password123!", "teste@example.com",  new DateTime(1993, 3, 1));
+        var command = new CreateUserCommand(
+            "Test User",
+            "Password123!",
+            "teste@example.com",
+            new DateTime(1993, 3, 1));
+        const string passwordHash = "PBKDF2-SHA256$600000$salt$hash";
 
-        _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email))
-            .ReturnsAsync(false);
+        _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email)).ReturnsAsync(false);
+        _authServiceMock.Setup(service => service.HashPassword(command.Password)).Returns(passwordHash);
 
-        _authServiceMock.Setup(x=>x.ComputeSha256Hash(It.IsAny<string>()))
-                        .Returns("hashedPassword");
+        User? savedUser = null;
+        _userRepositoryMock
+            .Setup(repository => repository.AddAsync(It.IsAny<User>()))
+            .Callback<User>(user => savedUser = user)
+            .Returns(Task.CompletedTask);
 
-
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(savedUser);
+        Assert.Equal(passwordHash, savedUser.PasswordHash);
+        _authServiceMock.Verify(service => service.HashPassword(command.Password), Times.Once);
+        _userRepositoryMock.Verify(repository => repository.AddAsync(It.IsAny<User>()), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithExistingEmail_ShouldReturnError()
+    public async Task Handle_WithExistingEmail_ShouldThrowAndNotHashPassword()
     {
-        // Arrange
-        var command = new CreateUserCommand("Test User", "existing@example.com", "Password123!", new DateTime(1993, 3, 1));
+        var command = new CreateUserCommand(
+            "Test User",
+            "Password123!",
+            "existing@example.com",
+            new DateTime(1993, 3, 1));
 
-        _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email))
-            .ReturnsAsync(true); // Email already exists
+        _userRepositoryMock.Setup(r => r.CheckEmailAsync(command.Email)).ReturnsAsync(true);
 
-        // Act & Assert
         await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
+
+        _authServiceMock.Verify(service => service.HashPassword(It.IsAny<string>()), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 }

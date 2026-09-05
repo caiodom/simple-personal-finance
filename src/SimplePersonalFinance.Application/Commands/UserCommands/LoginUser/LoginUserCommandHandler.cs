@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Users;
 using SimplePersonalFinance.Core.Domain.Exceptions;
@@ -11,6 +11,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, ResultV
 {
     private readonly IAuthService _authService;
     private readonly IUnitOfWork _uow;
+
     public LoginUserCommandHandler(IAuthService authService, IUnitOfWork uow)
     {
         _authService = authService;
@@ -19,16 +20,12 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, ResultV
 
     public async Task<ResultViewModel<LoginUserViewModel>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
+        var user = await _uow.Users.GetByEmailAsync(request.Email);
 
-        var passwordHash = _authService.ComputeSha256Hash(request.Password);
-
-        var user = await _uow.Users.GetUserByEmailAndPasswordAsync(request.Email, passwordHash);
-
-
-        if (user is null)
-            throw new BusinessRuleViolationException("Invalid Credentials",
+        if (user is null || !_authService.VerifyPassword(request.Password, user.PasswordHash))
+            throw new BusinessRuleViolationException(
+                "Invalid Credentials",
                 "The email or password provided is incorrect. Please try again.");
-
 
         var token = _authService.GenerateJwtToken(user.Id, user.Email.Value, user.Role);
 

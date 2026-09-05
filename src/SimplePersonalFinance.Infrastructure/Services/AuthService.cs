@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SimplePersonalFinance.Core.Interfaces.Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,17 +10,64 @@ namespace SimplePersonalFinance.Infrastructure.Services;
 
 public class AuthService(IConfiguration configuration) : IAuthService
 {
-    public string ComputeSha256Hash(string password)
+    private const string PasswordHashScheme = "PBKDF2-SHA256";
+    private const int PasswordHashIterations = 600_000;
+    private const int SaltSize = 16;
+    private const int HashSize = 32;
+
+    public string HashPassword(string password)
     {
-        using (SHA256 sha256Hash = SHA256.Create())
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Password cannot be empty.", nameof(password));
+
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(
+            password,
+            salt,
+            PasswordHashIterations,
+            HashAlgorithmName.SHA256,
+            HashSize);
+
+        return string.Join(
+            '$',
+            PasswordHashScheme,
+            PasswordHashIterations,
+            Convert.ToBase64String(salt),
+            Convert.ToBase64String(hash));
+    }
+
+    public bool VerifyPassword(string password, string passwordHash)
+    {
+        if (string.IsNullOrEmpty(password) || string.IsNullOrWhiteSpace(passwordHash))
+            return false;
+
+        var parts = passwordHash.Split('$');
+        if (parts.Length != 4 || !string.Equals(parts[0], PasswordHashScheme, StringComparison.Ordinal))
+            return false;
+
+        if (!int.TryParse(parts[1], out var iterations) || iterations <= 0)
+            return false;
+
+        try
         {
-            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-            StringBuilder builder = new StringBuilder();
+            var salt = Convert.FromBase64String(parts[2]);
+            var expectedHash = Convert.FromBase64String(parts[3]);
 
-            for (int i = 0; i < bytes.Length; i++)
-                builder.Append(bytes[i].ToString("x2"));
+            if (salt.Length < SaltSize || expectedHash.Length < HashSize)
+                return false;
 
-            return builder.ToString();
+            var actualHash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                iterations,
+                HashAlgorithmName.SHA256,
+                expectedHash.Length);
+
+            return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+        }
+        catch (FormatException)
+        {
+            return false;
         }
     }
 
@@ -35,23 +82,19 @@ public class AuthService(IConfiguration configuration) : IAuthService
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
-            {
-                new Claim("userName", email),
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Role, role)
-            };
+        {
+            new("userName", email),
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Role, role)
+        };
 
         var token = new JwtSecurityToken(
-              issuer: issuer,
-              audience: audience,
-              expires: DateTime.Now.AddMinutes(double.Parse(expirationMinutes)),
-              signingCredentials: credentials,
-              claims: claims);
+            issuer: issuer,
+            audience: audience,
+            expires: DateTime.Now.AddMinutes(double.Parse(expirationMinutes)),
+            signingCredentials: credentials,
+            claims: claims);
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        var stringToken = tokenHandler.WriteToken(token);
-
-        return stringToken;
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

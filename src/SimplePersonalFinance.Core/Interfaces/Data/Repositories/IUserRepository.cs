@@ -4,8 +4,8 @@ namespace SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
 public interface IUserRepository
 {
-    Task AddAsync(User user);
-    Task<User?> GetByIdAsync(Guid id);
-    Task<bool> CheckEmailAsync(string email);
-    Task<User?> GetByEmailAsync(string email);
+    Task AddAsync(User user, CancellationToken cancellationToken);
+    Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> CheckEmailAsync(string email, CancellationToken cancellationToken);
+    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken);
 }

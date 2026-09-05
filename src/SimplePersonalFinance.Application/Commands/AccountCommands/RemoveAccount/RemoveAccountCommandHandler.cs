@@ -14,13 +14,13 @@ public class RemoveAccountCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(RemoveAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetFullAccountWithTransactionsAsync(request.Id);
+        var account = await accounts.GetFullAccountWithTransactionsAsync(request.Id, cancellationToken);
 
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.Id);
 
         account.DeleteAccount();
-        await uow.SaveChangesAsync();
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(account.Id, "Account removed successfully");
     }

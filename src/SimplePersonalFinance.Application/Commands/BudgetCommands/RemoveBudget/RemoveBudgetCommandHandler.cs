@@ -14,13 +14,13 @@ public class RemoveBudgetCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(RemoveBudgetCommand request, CancellationToken cancellationToken)
     {
-        var budget = await budgets.GetByIdAsync(request.Id);
+        var budget = await budgets.GetByIdAsync(request.Id, cancellationToken);
 
         if (budget is null || budget.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Budget", request.Id, "Budget not found");
 
         budget.SetAsDeleted();
-        await uow.SaveChangesAsync();
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(budget.Id, "Budget removed successfully");
     }

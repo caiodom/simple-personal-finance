@@ -14,12 +14,12 @@ public class GetTransactionByIdQueryHandler(
 {
     public async Task<ResultViewModel<TransactionViewModel>> Handle(GetTransactionByIdQuery request, CancellationToken cancellationToken)
     {
-        var transaction = await transactions.GetByIdAsync(request.Id);
+        var transaction = await transactions.GetByIdAsync(request.Id, cancellationToken);
 
         if (transaction is null)
             throw new EntityNotFoundException("Transaction", request.Id);
 
-        var account = await accounts.GetByIdAsync(transaction.AccountId);
+        var account = await accounts.GetByIdAsync(transaction.AccountId, cancellationToken);
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Transaction", request.Id);
 

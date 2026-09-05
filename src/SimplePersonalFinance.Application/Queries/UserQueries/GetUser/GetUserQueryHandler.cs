@@ -7,14 +7,16 @@ using SimplePersonalFinance.Core.Interfaces.Services;
 
 namespace SimplePersonalFinance.Application.Queries.UserQueries.GetUser;
 
-public class GetUserQueryHandler(IUserRepository users, ICurrentUser currentUser) : IRequestHandler<GetUserQuery, ResultViewModel<UserViewModel>>
+public class GetUserQueryHandler(
+    IUserRepository users,
+    ICurrentUser currentUser) : IRequestHandler<GetUserQuery, ResultViewModel<UserViewModel>>
 {
     public async Task<ResultViewModel<UserViewModel>> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
         if (request.Id != currentUser.UserId)
             throw new EntityNotFoundException("User", request.Id);
 
-        var user = await users.GetByIdAsync(request.Id);
+        var user = await users.GetByIdAsync(request.Id, cancellationToken);
         if (user == null)
             throw new EntityNotFoundException("User", request.Id);
 

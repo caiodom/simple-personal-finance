@@ -25,12 +25,13 @@ public class CreateAccountCommandHandlerTests
     {
         var userId = Guid.NewGuid();
         var command = new CreateAccountCommand(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var cancellationToken = new CancellationTokenSource().Token;
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, cancellationToken);
 
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        _accountRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Once);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _accountRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Account>(), cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
     }
 }

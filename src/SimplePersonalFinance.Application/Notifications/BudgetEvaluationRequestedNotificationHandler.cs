@@ -11,12 +11,20 @@ public class BudgetEvaluationRequestedNotificationHandler(
     public async Task Handle(BudgetEvaluationRequestedNotification notification, CancellationToken cancellationToken)
     {
         var domainEvent = notification.DomainEvent;
-        await CheckAndNotify(domainEvent.AccountId, domainEvent.UserId, domainEvent.Category);
+        await CheckAndNotify(
+            domainEvent.AccountId,
+            domainEvent.UserId,
+            domainEvent.Category,
+            cancellationToken);
     }
 
-    private async Task CheckAndNotify(Guid accountId, Guid userId, CategoryEnum category)
+    private async Task CheckAndNotify(
+        Guid accountId,
+        Guid userId,
+        CategoryEnum category,
+        CancellationToken cancellationToken)
     {
-        var budget = await budgets.GetByUserAndCategoryAsync(userId, (int)category);
+        var budget = await budgets.GetByUserAndCategoryAsync(userId, (int)category, cancellationToken);
 
         if (budget == null)
             return;
@@ -24,7 +32,8 @@ public class BudgetEvaluationRequestedNotificationHandler(
         var categoryExpenses = await transactions.GetCategoryExpensesByAccountAndPeriod(
             accountId,
             category,
-            new DateTime(budget.Year, budget.Month, 1));
+            new DateTime(budget.Year, budget.Month, 1),
+            cancellationToken);
 
         var totalExpenses = categoryExpenses.Sum(transaction => transaction.Amount);
 

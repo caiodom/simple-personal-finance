@@ -13,7 +13,7 @@ public class GetAccountTransactionsQueryHandler(
 {
     public async Task<ResultViewModel<AccountTransactionsViewModel>> Handle(GetAccountTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetAccountWithTransactionsAsync(request.AccountId);
+        var account = await accounts.GetAccountWithTransactionsAsync(request.AccountId, cancellationToken);
 
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.AccountId);

@@ -27,19 +27,21 @@ public class LoginUserCommandHandlerTests
         const string password = "test-input";
         const string storedHash = "test-hash";
         const string token = "test-token";
+        var cancellationToken = new CancellationTokenSource().Token;
         var user = User.Create("Test User", email, storedHash, "client", new DateTime(1993, 3, 1)).Value;
         var command = new LoginUserCommand(email, password);
 
-        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email, cancellationToken)).ReturnsAsync(user);
         _authServiceMock.Setup(service => service.VerifyPassword(password, storedHash)).Returns(true);
         _authServiceMock.Setup(service => service.GenerateJwtToken(user.Id, email, user.Role)).Returns(token);
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, cancellationToken);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(email, result.Data.Email);
         Assert.Equal(token, result.Data.Token);
+        _userRepositoryMock.Verify(repository => repository.GetByEmailAsync(email, cancellationToken), Times.Once);
         _authServiceMock.Verify(service => service.VerifyPassword(password, storedHash), Times.Once);
     }
 
@@ -52,7 +54,7 @@ public class LoginUserCommandHandlerTests
         var user = User.Create("Test User", email, storedHash, "client", new DateTime(1993, 3, 1)).Value;
         var command = new LoginUserCommand(email, password);
 
-        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email, CancellationToken.None)).ReturnsAsync(user);
         _authServiceMock.Setup(service => service.VerifyPassword(password, storedHash)).Returns(false);
 
         await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
@@ -66,7 +68,7 @@ public class LoginUserCommandHandlerTests
         const string email = "missing@example.test";
         var command = new LoginUserCommand(email, "test-input");
 
-        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email)).ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email, CancellationToken.None)).ReturnsAsync((User?)null);
 
         await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
 

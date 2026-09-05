@@ -36,12 +36,12 @@ public class RemoveBudgetCommandHandlerTests
         var budget = new Budget(_currentUserId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new RemoveBudgetCommand(budgetId);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class RemoveBudgetCommandHandlerTests
         var budgetId = Guid.NewGuid();
         var command = new RemoveBudgetCommand(budgetId);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync((Budget?)null);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync((Budget?)null);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -62,9 +62,9 @@ public class RemoveBudgetCommandHandlerTests
         var budget = new Budget(Guid.NewGuid(), CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new RemoveBudgetCommand(budgetId);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -37,7 +37,9 @@ public class EditAccountTransactionCommandHandlerTests
         var transactionId = Guid.NewGuid();
         var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync((Account?)null);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync((Account?)null);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -52,7 +54,9 @@ public class EditAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -61,7 +65,7 @@ public class EditAccountTransactionCommandHandlerTests
         Assert.Equal(500m, transaction.Amount);
         Assert.Equal("Updated Description", transaction.Description);
         Assert.Equal((int)CategoryEnum.FOOD, transaction.CategoryId);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -76,14 +80,16 @@ public class EditAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new EditAccountTransactionCommand(transactionId, accountId, 300m, "Updated Description", CategoryEnum.SALARY, TransactionTypeEnum.INCOME);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1300m, account.CurrentBalance);
         Assert.Equal((int)TransactionTypeEnum.INCOME, transaction.TransactionTypeId);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -96,9 +102,11 @@ public class EditAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

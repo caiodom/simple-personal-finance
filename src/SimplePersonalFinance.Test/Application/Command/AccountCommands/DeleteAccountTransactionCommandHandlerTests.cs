@@ -37,7 +37,9 @@ public class DeleteAccountTransactionCommandHandlerTests
         var transactionId = Guid.NewGuid();
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync((Account?)null);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync((Account?)null);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -54,15 +56,17 @@ public class DeleteAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
         Assert.Equal(1000m, account.CurrentBalance);
-        Assert.DoesNotContain(account.Transactions, transaction => transaction.IsActive);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        Assert.DoesNotContain(account.Transactions, item => item.IsActive);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -77,13 +81,15 @@ public class DeleteAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1000m, account.CurrentBalance);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -96,9 +102,11 @@ public class DeleteAccountTransactionCommandHandlerTests
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+        _accountRepositoryMock
+            .Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId, CancellationToken.None))
+            .ReturnsAsync(account);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

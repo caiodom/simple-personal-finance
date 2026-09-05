@@ -12,7 +12,11 @@ public class CreateBudgetCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(CreateBudgetCommand request, CancellationToken cancellationToken)
     {
-        var existingBudget = await budgets.GetByUserAndCategoryAsync(request.UserId, (int)request.Category);
+        var existingBudget = await budgets.GetByUserAndCategoryAsync(
+            request.UserId,
+            (int)request.Category,
+            cancellationToken);
+
         if (existingBudget != null)
             throw new BusinessRuleViolationException(
                 "Budget already exists",
@@ -20,8 +24,8 @@ public class CreateBudgetCommandHandler(
 
         var budget = request.ToEntity();
 
-        await budgets.AddAsync(budget);
-        await uow.SaveChangesAsync();
+        await budgets.AddAsync(budget, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(budget.Id, "Budget created successfully");
     }

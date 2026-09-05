@@ -28,15 +28,15 @@ public class CreateBudgetCommandHandlerTests
         var command = new CreateBudgetCommand(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
 
         _budgetRepositoryMock
-            .Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT))
+            .Setup(r => r.GetByUserAndCategoryAsync(userId, (int)CategoryEnum.ENTERTAINMENT, CancellationToken.None))
             .ReturnsAsync((Budget?)null);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        _budgetRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Budget>()), Times.Once);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _budgetRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Budget>(), CancellationToken.None), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -47,10 +47,10 @@ public class CreateBudgetCommandHandlerTests
         var existingBudget = new Budget(userId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
 
         _budgetRepositoryMock
-            .Setup(r => r.GetByUserAndCategoryAsync(It.IsAny<Guid>(), It.IsAny<int>()))
+            .Setup(r => r.GetByUserAndCategoryAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingBudget);
 
         await Assert.ThrowsAsync<BusinessRuleViolationException>(() => _handler.Handle(command, CancellationToken.None));
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
@@ -8,9 +8,8 @@ using System.Reflection;
 
 namespace SimplePersonalFinance.Infrastructure.Data.Context;
 
-public class AppDbContext:DbContext
+public class AppDbContext : DbContext
 {
-
     public DbSet<User> Users { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Account> Accounts { get; set; }
@@ -21,8 +20,8 @@ public class AppDbContext:DbContext
     public DbSet<TransactionType> TransactionTypes { get; set; }
 
     private readonly IDomainEventDispatcher _dispatcher;
-    
-    public AppDbContext(DbContextOptions<AppDbContext> options,IDomainEventDispatcher dispatcher) :base(options) 
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IDomainEventDispatcher dispatcher) : base(options)
     {
         _dispatcher = dispatcher;
     }
@@ -31,24 +30,23 @@ public class AppDbContext:DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         modelBuilder.SeedDefaults();
-        
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var domainEntities= ChangeTracker.Entries<AggregateRoot>()
-                  .Where(x => x.Entity.DomainEvents != null && x.Entity.DomainEvents.Any())
-                    .ToList();
+        var domainEntities = ChangeTracker.Entries<AggregateRoot>()
+            .Where(entry => entry.Entity.DomainEvents != null && entry.Entity.DomainEvents.Any())
+            .ToList();
 
         var domainEvents = domainEntities
-                            .SelectMany(x => x.Entity.DomainEvents!)
-                            .ToList();
+            .SelectMany(entry => entry.Entity.DomainEvents!)
+            .ToList();
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        await _dispatcher.DispatchAsync(domainEvents);
+        await _dispatcher.DispatchAsync(domainEvents, cancellationToken);
 
-        domainEntities.ForEach(x => x.Entity.ClearDomainEvents());
+        domainEntities.ForEach(entry => entry.Entity.ClearDomainEvents());
 
         return result;
     }

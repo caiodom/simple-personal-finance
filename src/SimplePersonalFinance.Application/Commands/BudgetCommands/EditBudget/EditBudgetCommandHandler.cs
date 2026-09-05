@@ -14,14 +14,14 @@ public class EditBudgetCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(EditBudgetCommand request, CancellationToken cancellationToken)
     {
-        var budget = await budgets.GetByIdAsync(request.Id);
+        var budget = await budgets.GetByIdAsync(request.Id, cancellationToken);
 
         if (budget is null || budget.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Budget", request.Id, "Budget not found");
 
         budget.UpdateBudget(request.LimitAmount, request.Month, request.Year);
 
-        await uow.SaveChangesAsync();
+        await uow.SaveChangesAsync(cancellationToken);
         return ResultViewModel<Guid>.Success(request.Id, "Budget updated successfully");
     }
 }

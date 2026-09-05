@@ -13,8 +13,8 @@ public class CreateAccountCommandHandler(
     {
         var account = request.MapToEntity();
 
-        await accounts.AddAsync(account);
-        await uow.SaveChangesAsync();
+        await accounts.AddAsync(account, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(account.Id, "Account created successfully");
     }

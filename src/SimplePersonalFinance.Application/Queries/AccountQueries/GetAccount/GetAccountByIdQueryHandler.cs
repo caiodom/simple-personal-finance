@@ -13,7 +13,7 @@ public class GetAccountByIdQueryHandler(
 {
     public async Task<ResultViewModel<AccountViewModel>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetByIdAsync(request.Id);
+        var account = await accounts.GetByIdAsync(request.Id, cancellationToken);
 
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.Id);

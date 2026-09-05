@@ -36,7 +36,7 @@ public class EditBudgetCommandHandlerTests
         var budget = new Budget(_currentUserId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new EditBudgetCommand(budgetId, -50m, 2, 2023);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
 
         await Assert.ThrowsAsync<DomainException>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -48,7 +48,7 @@ public class EditBudgetCommandHandlerTests
         var budget = new Budget(_currentUserId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new EditBudgetCommand(budgetId, 100m, 1, 2023);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -57,7 +57,7 @@ public class EditBudgetCommandHandlerTests
         Assert.Equal(100m, budget.LimitAmount);
         Assert.Equal(1, budget.Month);
         Assert.Equal(2023, budget.Year);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class EditBudgetCommandHandlerTests
         var budget = new Budget(_currentUserId, CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new EditBudgetCommand(budgetId, 200m, 2, 2023);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
-        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync()).ThrowsAsync(new Exception("Database error"));
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(CancellationToken.None)).ThrowsAsync(new Exception("Database error"));
 
         await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -80,9 +80,9 @@ public class EditBudgetCommandHandlerTests
         var budget = new Budget(Guid.NewGuid(), CategoryEnum.ENTERTAINMENT, 100m, 1, 2023);
         var command = new EditBudgetCommand(budgetId, 200m, 2, 2023);
 
-        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        _budgetRepositoryMock.Setup(r => r.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

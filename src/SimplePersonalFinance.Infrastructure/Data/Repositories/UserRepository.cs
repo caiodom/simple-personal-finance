@@ -7,15 +7,21 @@ namespace SimplePersonalFinance.Infrastructure.Data.Repositories;
 
 public class UserRepository(AppDbContext context) : IUserRepository
 {
-    public async Task AddAsync(User user)
-        => await context.Users.AddAsync(user);
+    public async Task AddAsync(User user, CancellationToken cancellationToken)
+        => await context.Users.AddAsync(user, cancellationToken);
 
-    public async Task<User?> GetByIdAsync(Guid id)
-        => await context.Users.SingleOrDefaultAsync(x => x.Id == id && x.IsActive);
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        => await context.Users.SingleOrDefaultAsync(
+            user => user.Id == id && user.IsActive,
+            cancellationToken);
 
-    public async Task<bool> CheckEmailAsync(string email)
-        => await context.Users.AnyAsync(x => x.Email.Value == email && x.IsActive);
+    public async Task<bool> CheckEmailAsync(string email, CancellationToken cancellationToken)
+        => await context.Users.AnyAsync(
+            user => user.Email.Value == email && user.IsActive,
+            cancellationToken);
 
-    public async Task<User?> GetByEmailAsync(string email)
-        => await context.Users.SingleOrDefaultAsync(x => x.Email.Value == email && x.IsActive);
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+        => await context.Users.SingleOrDefaultAsync(
+            user => user.Email.Value == email && user.IsActive,
+            cancellationToken);
 }

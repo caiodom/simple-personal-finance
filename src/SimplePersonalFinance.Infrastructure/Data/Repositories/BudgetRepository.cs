@@ -7,37 +7,43 @@ namespace SimplePersonalFinance.Infrastructure.Data.Repositories;
 
 public class BudgetRepository(AppDbContext context) : IBudgetRepository
 {
-    public async Task AddAsync(Budget budget)
-        => await context.Budgets.AddAsync(budget);
+    public async Task AddAsync(Budget budget, CancellationToken cancellationToken)
+        => await context.Budgets.AddAsync(budget, cancellationToken);
 
-    public async Task<Budget?> GetByIdAsync(Guid id)
+    public async Task<Budget?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => await context.Budgets
             .Include(budget => budget.Category)
-            .SingleOrDefaultAsync(budget => budget.Id == id);
+            .SingleOrDefaultAsync(budget => budget.Id == id, cancellationToken);
 
-    public async Task<Budget?> GetByUserAndCategoryAsync(Guid userId, int categoryId)
+    public async Task<Budget?> GetByUserAndCategoryAsync(
+        Guid userId,
+        int categoryId,
+        CancellationToken cancellationToken)
         => await context.Budgets
             .Include(budget => budget.Category)
-            .SingleOrDefaultAsync(budget => budget.UserId == userId && budget.CategoryId == categoryId);
+            .SingleOrDefaultAsync(
+                budget => budget.UserId == userId && budget.CategoryId == categoryId,
+                cancellationToken);
 
     public async Task<(IReadOnlyList<Budget> Items, int TotalItems)> GetAllByUserIdAsync(
         Guid userId,
         int pageNumber,
-        int pageSize)
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var query = context.Budgets
             .AsNoTracking()
             .Include(budget => budget.Category)
             .Where(budget => budget.UserId == userId && budget.IsActive);
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(budget => budget.Year)
             .ThenByDescending(budget => budget.Month)
             .ThenBy(budget => budget.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return (items, totalItems);
     }

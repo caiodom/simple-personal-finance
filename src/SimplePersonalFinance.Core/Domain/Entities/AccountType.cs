@@ -1,9 +1,11 @@
-﻿namespace SimplePersonalFinance.Core.Domain.Entities;
+namespace SimplePersonalFinance.Core.Domain.Entities;
 
 public class AccountType
 {
     public int Id { get; private set; }
-    public string Name { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+
+    public ICollection<Account> Accounts { get; } = new List<Account>();
 
     public AccountType(int id, string name)
     {
@@ -12,8 +14,7 @@ public class AccountType
     }
 
     // Constructor for EF Core
-    protected AccountType() { }
-
-    //Ef rels
-    public ICollection<Account> Accounts { get; }
+    protected AccountType()
+    {
+    }
 }

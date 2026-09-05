@@ -1,4 +1,4 @@
-﻿using SimplePersonalFinance.Core.Domain.Enums;
+using SimplePersonalFinance.Core.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace SimplePersonalFinance.API.Requests.AccountRequests;
@@ -11,7 +11,7 @@ public class EditAccountTransactionRequest
 
     [Required(ErrorMessage = "Description is required")]
     [StringLength(250, MinimumLength = 2, ErrorMessage = "Description must be between 2 and 250 characters")]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Category is required")]
     public CategoryEnum CategoryId { get; set; }

@@ -1,4 +1,4 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 
 namespace SimplePersonalFinance.Application.ViewModels.Budgets;
 
@@ -9,7 +9,7 @@ public class BudgetViewModel
     public int Year { get; set; }
     public decimal LimitAmount { get; set; }
     public int CategoryId { get; set; }
-    public string CategoryName { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
 
     public static BudgetViewModel FromEntity(Budget budget)
     {

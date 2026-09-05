@@ -10,12 +10,15 @@ public class Account : AggregateRoot
 {
     public Guid UserId { get; private set; }
     public int AccountTypeId { get; private set; }
-    public string Name { get; private set; }
+    public string Name { get; private set; } = string.Empty;
     public decimal InitialBalance { get; private set; }
     public decimal CurrentBalance { get; private set; }
 
     private readonly TransactionCollection _transactions;
     public IReadOnlyCollection<Transaction> Transactions => _transactions.Transactions;
+
+    public AccountType AccountType { get; } = null!;
+    public User User { get; } = null!;
 
     public Account(Guid userId, AccountTypeEnum accountTypeId, string name, decimal initialBalance)
     {
@@ -57,7 +60,13 @@ public class Account : AggregateRoot
         var originalAmount = transaction.Amount;
         var originalType = (TransactionTypeEnum)transaction.TransactionTypeId;
 
-        var transactionDetails = TransactionDetails.Create(Id, newDescription, newAmount, category, transactionType, transaction.Date);
+        var transactionDetails = TransactionDetails.Create(
+            Id,
+            newDescription,
+            newAmount,
+            category,
+            transactionType,
+            transaction.Date);
         _transactions.Update(transactionId, transactionDetails);
 
         RevertTransactionEffect(originalAmount, originalType);
@@ -130,8 +139,4 @@ public class Account : AggregateRoot
     {
         _transactions = new TransactionCollection();
     }
-
-    // EF relationships
-    public AccountType AccountType { get; }
-    public User User { get; }
 }

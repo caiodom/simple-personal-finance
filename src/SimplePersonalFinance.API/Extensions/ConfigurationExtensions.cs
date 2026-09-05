@@ -216,11 +216,7 @@ public static class ConfigurationExtensions
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].FirstOrDefault());
-                diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress);
                 diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-
-                if (httpContext.User.Identity?.IsAuthenticated == true)
-                    diagnosticContext.Set("UserId", httpContext.User.FindFirst("sub")?.Value);
             };
         });
 

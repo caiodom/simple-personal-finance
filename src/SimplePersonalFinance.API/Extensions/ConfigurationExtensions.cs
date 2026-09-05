@@ -2,6 +2,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using SimplePersonalFinance.API.ExceptionHandling;
 using SimplePersonalFinance.API.Filters;
 using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.API.Services;
@@ -18,10 +19,11 @@ public static class ConfigurationExtensions
     public static WebApplicationBuilder AddBuilderConfigurations(this WebApplicationBuilder builder)
     {
         builder.AddSettingsConfigurations()
-                .AddLog();
+            .AddLog();
 
         return builder;
     }
+
     public static WebApplicationBuilder AddSettingsConfigurations(this WebApplicationBuilder builder)
     {
         builder.Configuration
@@ -32,6 +34,7 @@ public static class ConfigurationExtensions
 
         return builder;
     }
+
     public static WebApplicationBuilder AddLog(this WebApplicationBuilder builder)
     {
         Log.Logger = new LoggerConfiguration()
@@ -53,19 +56,22 @@ public static class ConfigurationExtensions
 
         return builder;
     }
+
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
-                .AddProblemDetails()
-                .AddMiddlewares()
-                .AddApplicationConfigurations()
-                .AddCorsConfiguration(configuration)
-                .AddEndpointsApiExplorer()
-                .AddSwaggerConfigurations()
-                .AddHealthCheck()
-                .AddControllers(options => {
-                    options.Filters.Add<ValidationFilter>();
-                });
+            .AddProblemDetails()
+            .AddExceptionHandler<GlobalExceptionHandler>()
+            .AddMiddlewares()
+            .AddApplicationConfigurations()
+            .AddCorsConfiguration(configuration)
+            .AddEndpointsApiExplorer()
+            .AddSwaggerConfigurations()
+            .AddHealthCheck()
+            .AddControllers(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            });
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped<AuthUserHandler>();
@@ -74,9 +80,9 @@ public static class ConfigurationExtensions
 
         return services;
     }
+
     public static WebApplication UseConfigurations(this WebApplication app)
     {
-
         Console.WriteLine(app.Environment.EnvironmentName);
 
         if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
@@ -96,7 +102,6 @@ public static class ConfigurationExtensions
         app.UseHealthChecks()
             .MapControllers();
 
-
         app.Services.ApplyMigration(app.Environment);
 
         return app;
@@ -104,35 +109,35 @@ public static class ConfigurationExtensions
 
     private static IServiceCollection AddMiddlewares(this IServiceCollection services)
     {
-        services.AddTransient<ExceptionMiddleware>();
         services.AddTransient<CorrelationIdMiddleware>();
         services.AddTransient<PerformanceMiddleware>();
         return services;
     }
+
     private static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddCors(options =>
         {
-            options.AddPolicy("CorsPolicy",
-                 builder =>
-                 {
-                     builder
-                            .WithOrigins(configuration.GetSection("AllowedHosts").Value)
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                 });
+            options.AddPolicy("CorsPolicy", builder =>
+            {
+                builder
+                    .WithOrigins(configuration.GetSection("AllowedHosts").Value)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
         });
 
         return services;
     }
+
     private static IServiceCollection AddHealthCheck(this IServiceCollection services)
     {
         services.AddHealthChecks();
-
         return services;
     }
+
     private static IServiceCollection AddSwaggerConfigurations(this IServiceCollection services)
     {
         services.AddSwaggerGen(c =>
@@ -150,23 +155,24 @@ public static class ConfigurationExtensions
             });
 
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                 {
-                     {
-                           new OpenApiSecurityScheme
-                             {
-                                 Reference = new OpenApiReference
-                                 {
-                                     Type = ReferenceType.SecurityScheme,
-                                     Id = "Bearer"
-                                 }
-                             },
-                             new string[] {}
-                     }
-                 });
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
 
         return services;
     }
+
     private static WebApplication UseHealthChecks(this WebApplication app)
     {
         app.UseHealthChecks("/api/health", new HealthCheckOptions
@@ -176,9 +182,9 @@ public static class ConfigurationExtensions
 
         return app;
     }
+
     private static IApplicationBuilder UseRequestLogging(this IApplicationBuilder builder)
     {
-
         builder.UseSerilogRequestLogging(options =>
         {
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
@@ -194,12 +200,11 @@ public static class ConfigurationExtensions
 
         return builder;
     }
+
     private static IApplicationBuilder UseApiMiddlewares(this IApplicationBuilder builder)
     {
-        builder.UseMiddleware<ExceptionMiddleware>();
         builder.UseMiddleware<PerformanceMiddleware>();
         builder.UseMiddleware<CorrelationIdMiddleware>();
-
         return builder;
     }
 }

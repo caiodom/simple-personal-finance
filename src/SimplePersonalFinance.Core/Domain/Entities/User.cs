@@ -1,28 +1,28 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities.Base;
+using SimplePersonalFinance.Core.Domain.Entities.Base;
+using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Domain.Results;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
 
 namespace SimplePersonalFinance.Core.Domain.Entities;
 
-public class User:Entity
+public class User : Entity
 {
     public string Name { get; private set; }
     public Email Email { get; private set; }
     public string PasswordHash { get; private set; }
     public DateTime BirthdayDate { get; private set; }
-
     public string Role { get; private set; }
 
-    private User(string name, Email email,DateTime birthdayDate, string passwordHash,string role)
+    private User(string name, Email email, DateTime birthdayDate, string passwordHash, string role)
     {
-        Name=name;
-        Email=email;
-        PasswordHash=passwordHash;
+        Name = name;
+        Email = email;
+        PasswordHash = passwordHash;
         BirthdayDate = birthdayDate;
         Role = role;
     }
 
-    public static Result<User>Create(
+    public static Result<User> Create(
         string name,
         string email,
         string passwordHash,
@@ -35,8 +35,8 @@ public class User:Entity
         if (birthDate >= DateTime.Today)
             return Result.Failure<User>("Birth date must be in the past");
 
-        var emailResult= Email.Create(email);
-        if(emailResult.IsFailure)
+        var emailResult = Email.Create(email);
+        if (emailResult.IsFailure)
             return Result.Failure<User>(emailResult.Error);
 
         if (string.IsNullOrWhiteSpace(passwordHash))
@@ -44,7 +44,6 @@ public class User:Entity
 
         if (string.IsNullOrWhiteSpace(role))
             return Result.Failure<User>("Role cannot be empty");
-
 
         var user = new User(
             name,
@@ -56,10 +55,18 @@ public class User:Entity
         return Result.Success(user);
     }
 
+    public void UpdatePasswordHash(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new DomainException("Password hash cannot be empty");
+
+        PasswordHash = passwordHash;
+    }
+
     // Constructor for EF Core
     protected User() { }
 
-    //Ef Rel
+    // EF relationships
     public ICollection<Account> Accounts { get; }
-    public ICollection<Budget> Budgets { get;}
+    public ICollection<Budget> Budgets { get; }
 }

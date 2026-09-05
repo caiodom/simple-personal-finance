@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SimplePersonalFinance.Core.Interfaces.Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,18 +10,52 @@ namespace SimplePersonalFinance.Infrastructure.Services;
 
 public class AuthService(IConfiguration configuration) : IAuthService
 {
-    public string ComputeSha256Hash(string password)
+    private const string PasswordHashAlgorithm = "pbkdf2-sha256";
+    private const int PasswordIterations = 600_000;
+    private const int SaltSize = 16;
+    private const int HashSize = 32;
+
+    public string HashPassword(string password)
     {
-        using (SHA256 sha256Hash = SHA256.Create())
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(
+            password,
+            salt,
+            PasswordIterations,
+            HashAlgorithmName.SHA256,
+            HashSize);
+
+        return $"{PasswordHashAlgorithm}${PasswordIterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
+    }
+
+    public bool VerifyPassword(string password, string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
+            return false;
+
+        if (TryParsePasswordHash(passwordHash, out var iterations, out var salt, out var expectedHash))
         {
-            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-            StringBuilder builder = new StringBuilder();
+            var actualHash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                iterations,
+                HashAlgorithmName.SHA256,
+                expectedHash.Length);
 
-            for (int i = 0; i < bytes.Length; i++)
-                builder.Append(bytes[i].ToString("x2"));
-
-            return builder.ToString();
+            return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
         }
+
+        return VerifyLegacySha256(password, passwordHash);
+    }
+
+    public bool NeedsRehash(string passwordHash)
+    {
+        if (!TryParsePasswordHash(passwordHash, out var iterations, out _, out _))
+            return true;
+
+        return iterations < PasswordIterations;
     }
 
     public string GenerateJwtToken(Guid userId, string email, string role)
@@ -35,23 +69,66 @@ public class AuthService(IConfiguration configuration) : IAuthService
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
-            {
-                new Claim("userName", email),
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Role, role)
-            };
+        {
+            new("userName", email),
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Role, role)
+        };
 
         var token = new JwtSecurityToken(
-              issuer: issuer,
-              audience: audience,
-              expires: DateTime.Now.AddMinutes(double.Parse(expirationMinutes)),
-              signingCredentials: credentials,
-              claims: claims);
+            issuer: issuer,
+            audience: audience,
+            expires: DateTime.UtcNow.AddMinutes(double.Parse(expirationMinutes)),
+            signingCredentials: credentials,
+            claims: claims);
 
-        var tokenHandler = new JwtSecurityTokenHandler();
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 
-        var stringToken = tokenHandler.WriteToken(token);
+    private static bool TryParsePasswordHash(
+        string passwordHash,
+        out int iterations,
+        out byte[] salt,
+        out byte[] hash)
+    {
+        iterations = 0;
+        salt = [];
+        hash = [];
 
-        return stringToken;
+        var parts = passwordHash.Split('$');
+        if (parts.Length != 4 || !string.Equals(parts[0], PasswordHashAlgorithm, StringComparison.Ordinal))
+            return false;
+
+        if (!int.TryParse(parts[1], out iterations) || iterations <= 0)
+            return false;
+
+        try
+        {
+            salt = Convert.FromBase64String(parts[2]);
+            hash = Convert.FromBase64String(parts[3]);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+
+        return salt.Length >= SaltSize && hash.Length == HashSize;
+    }
+
+    private static bool VerifyLegacySha256(string password, string passwordHash)
+    {
+        try
+        {
+            var expectedHash = Convert.FromHexString(passwordHash);
+            if (expectedHash.Length != HashSize)
+                return false;
+
+            var actualHash = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+            return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }

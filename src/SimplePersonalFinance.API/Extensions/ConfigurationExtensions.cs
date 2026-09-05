@@ -9,7 +9,6 @@ using SimplePersonalFinance.API.Services;
 using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Extensions;
 using SimplePersonalFinance.Core.Interfaces.Services;
-using SimplePersonalFinance.Infrastructure.Data.Extensions;
 using SimplePersonalFinance.Infrastructure.Extensions;
 
 namespace SimplePersonalFinance.API.Extensions;
@@ -105,8 +104,6 @@ public static class ConfigurationExtensions
 
         app.UseHealthChecks()
             .MapControllers();
-
-        app.Services.ApplyMigration(app.Environment);
 
         return app;
     }

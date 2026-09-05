@@ -1,6 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
 COPY ["SimplePersonalFinance.API/SimplePersonalFinance.API.csproj", "SimplePersonalFinance.API/"]
 COPY ["SimplePersonalFinance.Application/SimplePersonalFinance.Application.csproj", "SimplePersonalFinance.Application/"]
 COPY ["SimplePersonalFinance.Infrastructure/SimplePersonalFinance.Infrastructure.csproj", "SimplePersonalFinance.Infrastructure/"]

@@ -22,7 +22,7 @@ public class UserController(
     {
         ValidateIds(id);
         var result = await mediator.Send(new GetUserQuery(id), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpPost("register")]
@@ -31,15 +31,15 @@ public class UserController(
     {
         var command = new CreateUserCommand(request.Name, request.Password, request.Email, request.BirthDate);
         var result = await mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
-    [HttpPut("login")]
+    [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginUserRequest request, CancellationToken cancellationToken)
     {
         var command = new LoginUserCommand(request.Email, request.Password);
         var result = await mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 }

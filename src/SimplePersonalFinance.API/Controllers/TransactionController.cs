@@ -22,13 +22,14 @@ public class TransactionController(
         var result = await mediator.Send(
             new GetTransactionsQuery(request.AccountId, request.PageNumber, request.PageSize),
             cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetTransactionsById(Guid id, CancellationToken cancellationToken)
     {
+        ValidateIds(id);
         var result = await mediator.Send(new GetTransactionByIdQuery(id), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 }

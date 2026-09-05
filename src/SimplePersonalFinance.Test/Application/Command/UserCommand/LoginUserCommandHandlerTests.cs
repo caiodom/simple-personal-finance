@@ -2,7 +2,6 @@ using Moq;
 using SimplePersonalFinance.Application.Commands.UserCommands.LoginUser;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Exceptions;
-using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 using SimplePersonalFinance.Core.Interfaces.Services;
 
@@ -10,7 +9,6 @@ namespace SimplePersonalFinance.Test.Application.Command.UserCommands;
 
 public class LoginUserCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IAuthService> _authServiceMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly LoginUserCommandHandler _handler;
@@ -18,19 +16,17 @@ public class LoginUserCommandHandlerTests
     public LoginUserCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _authServiceMock = new Mock<IAuthService>();
-        _unitOfWorkMock.Setup(uow => uow.Users).Returns(_userRepositoryMock.Object);
-        _handler = new LoginUserCommandHandler(_authServiceMock.Object, _unitOfWorkMock.Object);
+        _handler = new LoginUserCommandHandler(_authServiceMock.Object, _userRepositoryMock.Object);
     }
 
     [Fact]
     public async Task Handle_WithValidCredentials_ShouldVerifyPasswordAndReturnToken()
     {
-        const string email = "test@example.com";
-        const string password = "Password123!";
-        const string storedHash = "PBKDF2-SHA256$600000$salt$hash";
-        const string token = "jwt-token";
+        const string email = "user@example.test";
+        const string password = "test-input";
+        const string storedHash = "test-hash";
+        const string token = "test-token";
         var user = User.Create("Test User", email, storedHash, "client", new DateTime(1993, 3, 1)).Value;
         var command = new LoginUserCommand(email, password);
 
@@ -50,9 +46,9 @@ public class LoginUserCommandHandlerTests
     [Fact]
     public async Task Handle_WithWrongPassword_ShouldThrowInvalidCredentialsAndNotGenerateToken()
     {
-        const string email = "test@example.com";
-        const string password = "WrongPassword";
-        const string storedHash = "PBKDF2-SHA256$600000$salt$hash";
+        const string email = "user@example.test";
+        const string password = "wrong-test-input";
+        const string storedHash = "test-hash";
         var user = User.Create("Test User", email, storedHash, "client", new DateTime(1993, 3, 1)).Value;
         var command = new LoginUserCommand(email, password);
 
@@ -67,8 +63,8 @@ public class LoginUserCommandHandlerTests
     [Fact]
     public async Task Handle_WithUnknownEmail_ShouldThrowInvalidCredentialsWithoutPasswordVerification()
     {
-        const string email = "missing@example.com";
-        var command = new LoginUserCommand(email, "Password123!");
+        const string email = "missing@example.test";
+        var command = new LoginUserCommand(email, "test-input");
 
         _userRepositoryMock.Setup(repository => repository.GetByEmailAsync(email)).ReturnsAsync((User?)null);
 

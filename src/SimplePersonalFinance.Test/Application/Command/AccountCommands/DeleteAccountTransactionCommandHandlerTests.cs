@@ -23,9 +23,11 @@ public class DeleteAccountTransactionCommandHandlerTests
         _accountRepositoryMock = new Mock<IAccountRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _currentUserMock = new Mock<ICurrentUser>();
-        _unitOfWorkMock.Setup(uow => uow.Accounts).Returns(_accountRepositoryMock.Object);
         _currentUserMock.SetupGet(user => user.UserId).Returns(_currentUserId);
-        _handler = new DeleteAccountTransactionCommandHandler(_unitOfWorkMock.Object, _currentUserMock.Object);
+        _handler = new DeleteAccountTransactionCommandHandler(
+            _accountRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            _currentUserMock.Object);
     }
 
     [Fact]

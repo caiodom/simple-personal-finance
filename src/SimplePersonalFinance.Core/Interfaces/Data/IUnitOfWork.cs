@@ -1,18 +1,6 @@
-﻿using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
-using System.Data;
+namespace SimplePersonalFinance.Core.Interfaces.Data;
 
-namespace SimplePersonalFinance.Core.Interfaces.Data
+public interface IUnitOfWork
 {
-    public interface IUnitOfWork:IDisposable
-    {
-        IUserRepository Users { get; }
-        IBudgetRepository Budgets { get; }
-        IAccountRepository Accounts { get; }
-
-        ITransactionRepository Transactions { get; }
-
-        Task<int> SaveChangesAsync();
-        Task BeginTransactionAsync();
-        Task CommitAsync();
-    }
+    Task<int> SaveChangesAsync();
 }

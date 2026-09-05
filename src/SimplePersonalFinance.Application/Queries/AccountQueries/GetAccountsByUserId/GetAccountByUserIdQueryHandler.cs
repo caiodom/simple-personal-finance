@@ -1,21 +1,21 @@
 using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
-using SimplePersonalFinance.Core.Interfaces.Data;
+using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 using SimplePersonalFinance.Shared.Contracts;
 
 namespace SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountsByUserId;
 
-public class GetAccountByUserIdQueryHandler(IUnitOfWork uow) : IRequestHandler<GetAccountByUserIdQuery, ResultViewModel<PaginatedResult<AccountViewModel>>>
+public class GetAccountByUserIdQueryHandler(IAccountRepository accounts) : IRequestHandler<GetAccountByUserIdQuery, ResultViewModel<PaginatedResult<AccountViewModel>>>
 {
     public async Task<ResultViewModel<PaginatedResult<AccountViewModel>>> Handle(GetAccountByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var (accounts, totalItems) = await uow.Accounts.GetAccountsByUserIdAsync(
+        var (itemsFromRepository, totalItems) = await accounts.GetAccountsByUserIdAsync(
             request.UserId,
             request.PageNumber,
             request.PageSize);
 
-        var items = accounts
+        var items = itemsFromRepository
             .Select(AccountViewModel.MapToViewModel)
             .ToList();
 

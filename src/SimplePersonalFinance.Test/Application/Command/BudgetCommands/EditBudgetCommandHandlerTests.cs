@@ -22,9 +22,11 @@ public class EditBudgetCommandHandlerTests
         _budgetRepositoryMock = new Mock<IBudgetRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _currentUserMock = new Mock<ICurrentUser>();
-        _unitOfWorkMock.Setup(uow => uow.Budgets).Returns(_budgetRepositoryMock.Object);
         _currentUserMock.SetupGet(user => user.UserId).Returns(_currentUserId);
-        _handler = new EditBudgetCommandHandler(_unitOfWorkMock.Object, _currentUserMock.Object);
+        _handler = new EditBudgetCommandHandler(
+            _budgetRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            _currentUserMock.Object);
     }
 
     [Fact]

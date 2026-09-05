@@ -1,4 +1,4 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Exceptions;
 
 namespace SimplePersonalFinance.Core.Domain.ValueObjects;
@@ -10,8 +10,6 @@ public class TransactionCollection
 
     public Transaction Add(TransactionDetails details)
     {
-        ValidateTransactionDetails(details);
-
         var transaction = new Transaction(
             details.AccountId,
             details.Category,
@@ -26,7 +24,6 @@ public class TransactionCollection
 
     public void Update(Guid transactionId, TransactionDetails details)
     {
-        ValidateTransactionDetails(details);
         var transaction = GetById(transactionId);
 
         transaction.UpdateDetails(
@@ -61,15 +58,5 @@ public class TransactionCollection
     {
         foreach (var transaction in _transactions.Where(t => t.IsActive))
             transaction.SetAsDeleted();
-    }
-
-
-    private static void ValidateTransactionDetails(TransactionDetails details)
-    {
-        if (string.IsNullOrWhiteSpace(details.Description))
-            throw new DomainException("Transaction description cannot be empty");
-
-        if (details.Amount < 0)
-            throw new DomainException("Transaction amount cannot be negative");
     }
 }

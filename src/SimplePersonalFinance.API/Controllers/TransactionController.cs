@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.API.Controllers.Base;
@@ -11,24 +11,24 @@ namespace SimplePersonalFinance.API.Controllers;
 
 [Route("api/transactions")]
 [Authorize]
-public class TransactionController(IMediator mediator, IAuthUserHandler authUserHandler,ILogger<TransactionController> logger):BaseController(logger, authUserHandler)
+public class TransactionController(
+    IMediator mediator,
+    IAuthUserHandler authUserHandler,
+    ILogger<TransactionController> logger) : BaseController(logger, authUserHandler)
 {
-
     [HttpGet]
-    public async Task<IActionResult> GetTransactions([FromQuery]GetTransactionsRequest request)
+    public async Task<IActionResult> GetTransactions([FromQuery] GetTransactionsRequest request, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetTransactionsQuery(request.AccountId, request.PageNumber, request.PageSize));
-
+        var result = await mediator.Send(
+            new GetTransactionsQuery(request.AccountId, request.PageNumber, request.PageSize),
+            cancellationToken);
         return HandleResult(result);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTransactionsById(Guid id)
+    public async Task<IActionResult> GetTransactionsById(Guid id, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetTransactionByIdQuery(id));
-
+        var result = await mediator.Send(new GetTransactionByIdQuery(id), cancellationToken);
         return HandleResult(result);
-
     }
-
 }

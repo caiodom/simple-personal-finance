@@ -32,14 +32,14 @@ public class BudgetController : BaseController
     {
         var userId = GetUserId();
         var result = await _mediator.Send(new GetBudgetsQuery(userId), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetBudgetByIdQuery(id), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -48,7 +48,7 @@ public class BudgetController : BaseController
         var userId = GetUserId();
         var command = new CreateBudgetCommand(userId, request.Category, request.LimitAmount, request.Month, request.Year);
         var result = await _mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
     [HttpPut("{id}")]
@@ -56,14 +56,15 @@ public class BudgetController : BaseController
     {
         ValidateIds(id);
         var command = new EditBudgetCommand(id, request.LimitAmount, request.Month, request.Year);
-        var result = await _mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBudget(Guid id, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new RemoveBudgetCommand(id), cancellationToken);
-        return HandleResult(result);
+        ValidateIds(id);
+        await _mediator.Send(new RemoveBudgetCommand(id), cancellationToken);
+        return NoContent();
     }
 }

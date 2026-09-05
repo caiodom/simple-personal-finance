@@ -23,7 +23,7 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAccountByIdQuery(id), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -32,7 +32,7 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
         var userId = GetUserId();
         var query = new GetAccountByUserIdQuery(userId, request.PageNumber, request.PageSize);
         var result = await mediator.Send(query, cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -41,15 +41,15 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
         var userId = GetUserId();
         var command = new CreateAccountCommand(userId, request.AccountType, request.Name, request.InitialBalance);
         var result = await mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         ValidateIds(id);
-        var result = await mediator.Send(new RemoveAccountCommand(id), cancellationToken);
-        return HandleResult(result);
+        await mediator.Send(new RemoveAccountCommand(id), cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("{id}/transactions")]
@@ -57,7 +57,7 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
     {
         ValidateIds(id);
         var result = await mediator.Send(new GetAccountTransactionsQuery(id), cancellationToken);
-        return HandleResult(result);
+        return Ok(result);
     }
 
     [HttpPost("{id}/transactions")]
@@ -73,7 +73,11 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
             request.Date);
 
         var result = await mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+        return CreatedAtAction(
+            nameof(TransactionController.GetTransactionsById),
+            "Transaction",
+            new { id = result.Data },
+            result);
     }
 
     [HttpPut("{id}/transactions/{transactionId}")]
@@ -87,15 +91,16 @@ public class AccountController(IMediator mediator, IAuthUserHandler authUserHand
             request.Description,
             request.CategoryId,
             request.TransactionTypeId);
-        var result = await mediator.Send(command, cancellationToken);
-        return HandleResult(result);
+
+        await mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{id}/transactions/{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
     {
         ValidateIds(id, transactionId);
-        var result = await mediator.Send(new DeleteAccountTransactionCommand(transactionId, id), cancellationToken);
-        return HandleResult(result);
+        await mediator.Send(new DeleteAccountTransactionCommand(transactionId, id), cancellationToken);
+        return NoContent();
     }
 }

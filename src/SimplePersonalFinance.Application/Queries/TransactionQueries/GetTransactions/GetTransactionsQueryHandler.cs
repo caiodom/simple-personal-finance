@@ -5,7 +5,6 @@ using SimplePersonalFinance.Core.Domain.Exceptions;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Services;
 using SimplePersonalFinance.Shared.Contracts;
-using SimplePersonalFinance.Shared.Extensions;
 
 namespace SimplePersonalFinance.Application.Queries.TransactionQueries.GetTransactions;
 
@@ -17,15 +16,22 @@ public class GetTransactionsQueryHandler(IUnitOfWork uow, ICurrentUser currentUs
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.AccountId);
 
-        var transactions = uow.Transactions.GetAllByAccountId(request.AccountId);
+        var page = await uow.Transactions.GetAllByAccountIdAsync(
+            request.AccountId,
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
 
-        if (transactions == null)
-            throw new InvalidOperationException("No transactions found for your account");
+        var items = page.Items
+            .Select(TransactionViewModel.ToViewModel)
+            .ToList();
 
-        var results = await transactions
-            .Select(x => TransactionViewModel.ToViewModel(x))
-            .ToPaginatedResultAsync(request.PageNumber, request.PageSize, cancellationToken);
+        var result = new PaginatedResult<TransactionViewModel>(
+            items,
+            page.TotalItems,
+            request.PageNumber,
+            request.PageSize);
 
-        return ResultViewModel<PaginatedResult<TransactionViewModel>>.Success(results);
+        return ResultViewModel<PaginatedResult<TransactionViewModel>>.Success(result);
     }
 }

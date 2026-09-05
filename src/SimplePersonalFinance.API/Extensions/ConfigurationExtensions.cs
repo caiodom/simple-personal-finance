@@ -60,6 +60,7 @@ public static class ConfigurationExtensions
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfrastructure(configuration)
+            .AddAuthorization()
             .AddProblemDetails()
             .AddExceptionHandler<GlobalExceptionHandler>()
             .AddMiddlewares()
@@ -97,6 +98,7 @@ public static class ConfigurationExtensions
 
         app.UseCors("CorsPolicy");
         app.UseRequestLogging();
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.UseHealthChecks()

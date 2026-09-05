@@ -200,8 +200,10 @@ public static class ConfigurationExtensions
         {
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
-                diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].FirstOrDefault());
-                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                diagnosticContext.Set(
+                    "UserAgent",
+                    httpContext.Request.Headers["User-Agent"].FirstOrDefault() ?? string.Empty);
+                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? string.Empty);
             };
         });
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,64 +13,71 @@ using SimplePersonalFinance.Infrastructure.Services;
 using System.Security.Claims;
 using System.Text;
 
-namespace SimplePersonalFinance.Infrastructure.Extensions
+namespace SimplePersonalFinance.Infrastructure.Extensions;
+
+public static class ConfigurationExtensions
 {
-    public static class ConfigurationExtensions
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services,IConfiguration configuration)
-        {
-            services.AddDbContext(configuration)
-                    .AddAuthentication(configuration)
-                    .AddPersistence();
+        services.AddDbContext(configuration)
+            .AddAuthentication(configuration)
+            .AddPersistence();
 
-            return services;
-        }
-        public static IServiceCollection AddPersistence(this IServiceCollection services)
-        {
-            services.AddScoped<IBudgetRepository,BudgetRepository>();
-            services.AddScoped<IUserRepository,UserRepository>();
-            services.AddScoped<IAccountRepository,AccountRepository>();
-            services.AddScoped<ITransactionRepository, TransactionRepository>();
+        return services;
+    }
 
-            services.AddScoped<IDomainEventDispatcher, MediatorDomainEventDispatcher>();
+    public static IServiceCollection AddPersistence(this IServiceCollection services)
+    {
+        services.AddScoped<IBudgetRepository, BudgetRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IDomainEventDispatcher, MediatorDomainEventDispatcher>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+        return services;
+    }
 
-            return services;
-        }
-        public static IServiceCollection AddDbContext(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddDbContext<AppDbContext>(options=>
-                            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
-                            b=>b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));  
+    public static IServiceCollection AddDbContext(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"),
+                builder => builder.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
-            return services;
-        }
-        public static IServiceCollection AddAuthentication(this IServiceCollection services,IConfiguration configuration)
-        {
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+        return services;
+    }
+
+    public static IServiceCollection AddAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var jwtKey = configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("Jwt:Key configuration is required.");
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration["Jwt:Issuer"],
-                        ValidAudience = configuration["Jwt:Audience"],
-                        NameClaimType= ClaimTypes.NameIdentifier,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-                    };
-                });
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    NameClaimType = ClaimTypes.NameIdentifier,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                };
+            });
 
+        services.AddScoped<IAuthService, AuthService>();
 
-            services.AddScoped<IAuthService, AuthService>();
-
-            return services;
-        }
-
-
+        return services;
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SimplePersonalFinance.Core.Interfaces.Services;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -73,10 +74,23 @@ public class AuthService(IConfiguration configuration) : IAuthService
 
     public string GenerateJwtToken(Guid userId, string email, string role)
     {
-        var issuer = configuration["Jwt:Issuer"];
-        var audience = configuration["Jwt:Audience"];
-        var expirationMinutes = configuration["Jwt:ExpirationMinutes"];
-        var key = configuration["Jwt:Key"];
+        var issuer = configuration["Jwt:Issuer"]
+            ?? throw new InvalidOperationException("Jwt:Issuer configuration is required.");
+        var audience = configuration["Jwt:Audience"]
+            ?? throw new InvalidOperationException("Jwt:Audience configuration is required.");
+        var key = configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("Jwt:Key configuration is required.");
+        var expirationValue = configuration["Jwt:ExpirationMinutes"];
+
+        if (!double.TryParse(
+                expirationValue,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var expirationMinutes) || expirationMinutes <= 0)
+        {
+            throw new InvalidOperationException(
+                "Jwt:ExpirationMinutes configuration must be a positive number.");
+        }
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -91,7 +105,7 @@ public class AuthService(IConfiguration configuration) : IAuthService
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
-            expires: DateTime.Now.AddMinutes(double.Parse(expirationMinutes)),
+            expires: DateTime.Now.AddMinutes(expirationMinutes),
             signingCredentials: credentials,
             claims: claims);
 

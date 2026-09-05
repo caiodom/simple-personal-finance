@@ -12,6 +12,9 @@ public class Budget : AggregateRoot
     public int Month { get; private set; }
     public int Year { get; private set; }
 
+    public Category Category { get; set; } = null!;
+    public User User { get; set; } = null!;
+
     public Budget(Guid userId, CategoryEnum category, decimal limitAmount, int month, int year)
     {
         ValidateUserId(userId);
@@ -59,9 +62,7 @@ public class Budget : AggregateRoot
     }
 
     // Constructor for EF Core
-    protected Budget() { }
-
-    // EF relationships
-    public Category Category { get; set; }
-    public User User { get; set; }
+    protected Budget()
+    {
+    }
 }

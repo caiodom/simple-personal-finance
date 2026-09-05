@@ -20,8 +20,10 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _authServiceMock = new Mock<IAuthService>();
-        _unitOfWorkMock.Setup(uow => uow.Users).Returns(_userRepositoryMock.Object);
-        _handler = new CreateUserCommandHandler(_authServiceMock.Object, _unitOfWorkMock.Object);
+        _handler = new CreateUserCommandHandler(
+            _authServiceMock.Object,
+            _userRepositoryMock.Object,
+            _unitOfWorkMock.Object);
     }
 
     [Fact]

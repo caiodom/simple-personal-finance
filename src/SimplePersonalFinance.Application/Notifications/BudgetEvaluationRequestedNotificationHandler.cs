@@ -1,10 +1,12 @@
-﻿using MediatR;
+using MediatR;
 using SimplePersonalFinance.Core.Domain.Enums;
-using SimplePersonalFinance.Core.Interfaces.Data;
+using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
 
 namespace SimplePersonalFinance.Application.Notifications;
 
-public class BudgetEvaluationRequestedNotificationHandler(IUnitOfWork uow) : INotificationHandler<BudgetEvaluationRequestedNotification>
+public class BudgetEvaluationRequestedNotificationHandler(
+    IBudgetRepository budgets,
+    ITransactionRepository transactions) : INotificationHandler<BudgetEvaluationRequestedNotification>
 {
     public async Task Handle(BudgetEvaluationRequestedNotification notification, CancellationToken cancellationToken)
     {
@@ -14,26 +16,20 @@ public class BudgetEvaluationRequestedNotificationHandler(IUnitOfWork uow) : INo
 
     private async Task CheckAndNotify(Guid accountId, Guid userId, CategoryEnum category)
     {
-        var budget = await uow.Budgets.GetByUserAndCategoryAsync(userId, (int)category);
-
-
+        var budget = await budgets.GetByUserAndCategoryAsync(userId, (int)category);
 
         if (budget == null)
-        {
-            // No budget set for this category
             return;
-        }
 
-        var transactions = await uow.Transactions.GetCategoryExpensesByAccountAndPeriod(
+        var categoryExpenses = await transactions.GetCategoryExpensesByAccountAndPeriod(
             accountId,
             category,
             new DateTime(budget.Year, budget.Month, 1));
 
-        decimal totalExpenses = transactions.Sum(x => x.Amount);
+        var totalExpenses = categoryExpenses.Sum(transaction => transaction.Amount);
 
         if (budget.LimitAmount < totalExpenses)
         {
-            // Notify user about budget limit exceeded
             Console.WriteLine($"Budget limit exceeded. Your budget for {category} has been exceeded.");
         }
     }

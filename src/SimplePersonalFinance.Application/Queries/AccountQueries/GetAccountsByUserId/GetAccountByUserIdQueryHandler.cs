@@ -1,9 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Accounts;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Shared.Contracts;
-using SimplePersonalFinance.Shared.Extensions;
 
 namespace SimplePersonalFinance.Application.Queries.AccountQueries.GetAccountsByUserId;
 
@@ -11,15 +10,16 @@ public class GetAccountByUserIdQueryHandler(IUnitOfWork uow) : IRequestHandler<G
 {
     public async Task<ResultViewModel<PaginatedResult<AccountViewModel>>> Handle(GetAccountByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var accounts = uow.Accounts.GetAccountsByUserIdAsync(request.UserId);
-        if (accounts == null)
-              throw new InvalidOperationException("No accounts found for your user");
+        var (accounts, totalItems) = await uow.Accounts.GetAccountsByUserIdAsync(
+            request.UserId,
+            request.PageNumber,
+            request.PageSize);
 
-        var results = await accounts.Select(a => AccountViewModel.MapToViewModel(a))
-                                    .ToPaginatedResultAsync(request.PageNumber, request.PageSize,
-                                        cancellationToken);
+        var items = accounts
+            .Select(AccountViewModel.MapToViewModel)
+            .ToList();
 
-        return ResultViewModel<PaginatedResult<AccountViewModel>>.Success(results);
-
+        var result = new PaginatedResult<AccountViewModel>(items, totalItems, request.PageNumber, request.PageSize);
+        return ResultViewModel<PaginatedResult<AccountViewModel>>.Success(result);
     }
 }

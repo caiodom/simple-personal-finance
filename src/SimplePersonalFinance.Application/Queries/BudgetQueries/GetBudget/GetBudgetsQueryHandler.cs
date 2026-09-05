@@ -1,9 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using SimplePersonalFinance.Application.ViewModels;
 using SimplePersonalFinance.Application.ViewModels.Budgets;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Shared.Contracts;
-using SimplePersonalFinance.Shared.Extensions;
 
 namespace SimplePersonalFinance.Application.Queries.BudgetQueries.GetBudget;
 
@@ -11,16 +10,16 @@ public class GetBudgetsQueryHandler(IUnitOfWork uow) : IRequestHandler<GetBudget
 {
     public async Task<ResultViewModel<PaginatedResult<BudgetViewModel>>> Handle(GetBudgetsQuery request, CancellationToken cancellationToken)
     {
-        var budgets = uow.Budgets.GetAllByUserId(request.UserId);
+        var (budgets, totalItems) = await uow.Budgets.GetAllByUserIdAsync(
+            request.UserId,
+            request.PageNumber,
+            request.PageSize);
 
-        if (budgets == null)
-            throw new InvalidOperationException("No budgets found for your account");
+        var items = budgets
+            .Select(BudgetViewModel.FromEntity)
+            .ToList();
 
-        var results = await budgets
-                        .Select(x => BudgetViewModel.FromEntity(x))
-                        .ToPaginatedResultAsync(request.PageNumber, request.PageSize,
-                            cancellationToken);
-
-        return ResultViewModel<PaginatedResult<BudgetViewModel>>.Success(results);
+        var result = new PaginatedResult<BudgetViewModel>(items, totalItems, request.PageNumber, request.PageSize);
+        return ResultViewModel<PaginatedResult<BudgetViewModel>>.Success(result);
     }
 }

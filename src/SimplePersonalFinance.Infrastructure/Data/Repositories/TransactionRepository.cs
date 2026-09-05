@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
@@ -9,32 +9,43 @@ namespace SimplePersonalFinance.Infrastructure.Data.Repositories;
 public class TransactionRepository(AppDbContext context) : ITransactionRepository
 {
     public async Task<Transaction?> GetByIdAsync(Guid id)
-    {
-        return await context.Transactions
-            .Include(x => x.Category)
-            .Include(x => x.TransactionType)
-            .SingleOrDefaultAsync(x => x.Id == id && x.IsActive);
-    }
+        => await context.Transactions
+            .Include(transaction => transaction.Category)
+            .Include(transaction => transaction.TransactionType)
+            .SingleOrDefaultAsync(transaction => transaction.Id == id && transaction.IsActive);
 
-    public async Task<List<Transaction>> GetCategoryExpensesByAccountAndPeriod(Guid accountId,CategoryEnum category, DateTime period)
-    {
-        return await context.Transactions
-            .Where(x => x.AccountId == accountId && 
-                        x.Date.Month == period.Month && 
-                        x.Date.Year == period.Year && 
-                        x.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE &&
-                        x.CategoryId == (int)category &&
-                        x.IsActive)
+    public async Task<List<Transaction>> GetCategoryExpensesByAccountAndPeriod(
+        Guid accountId,
+        CategoryEnum category,
+        DateTime period)
+        => await context.Transactions
+            .Where(transaction => transaction.AccountId == accountId &&
+                                  transaction.Date.Month == period.Month &&
+                                  transaction.Date.Year == period.Year &&
+                                  transaction.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE &&
+                                  transaction.CategoryId == (int)category &&
+                                  transaction.IsActive)
             .ToListAsync();
-    }
 
-    public IQueryable<Transaction> GetAllByAccountId(Guid accountId)
+    public async Task<(IReadOnlyList<Transaction> Items, int TotalItems)> GetAllByAccountIdAsync(
+        Guid accountId,
+        int pageNumber,
+        int pageSize)
     {
-        return context.Transactions
-                        .Include(x => x.TransactionType)
-                        .Include(x => x.Category)
-                        .Where(x => x.AccountId == accountId && x.IsActive)
-                        .AsNoTracking();
+        var query = context.Transactions
+            .AsNoTracking()
+            .Include(transaction => transaction.TransactionType)
+            .Include(transaction => transaction.Category)
+            .Where(transaction => transaction.AccountId == accountId && transaction.IsActive);
 
+        var totalItems = await query.CountAsync();
+        var items = await query
+            .OrderByDescending(transaction => transaction.Date)
+            .ThenBy(transaction => transaction.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalItems);
     }
 }

@@ -573,18 +573,6 @@ public class AccountTests
     }
 
     [Fact]
-    public void UpdateCurrentBalance_ShouldApplySignedDelta()
-    {
-        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);
-
-        account.UpdateCurrentBalance(-250m);
-        Assert.Equal(750m, account.CurrentBalance);
-
-        account.UpdateCurrentBalance(100m);
-        Assert.Equal(850m, account.CurrentBalance);
-    }
-
-    [Fact]
     public void DeleteAccount_ShouldRemoveAllTransactionsAndMarkAsDeleted()
     {
         var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Test Account", 1000m);

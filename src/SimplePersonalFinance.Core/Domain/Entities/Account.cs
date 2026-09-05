@@ -2,11 +2,7 @@ using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.Events;
 using SimplePersonalFinance.Core.Domain.Exceptions;
-using SimplePersonalFinance.Core.Domain.Services;
-using SimplePersonalFinance.Core.Domain.Strategies.BalanceUpdate;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
-using SimplePersonalFinance.Core.Interfaces.Domain.Services;
-using SimplePersonalFinance.Core.Interfaces.Domain.Strategies;
 
 namespace SimplePersonalFinance.Core.Domain.Entities;
 
@@ -44,9 +40,7 @@ public class Account : AggregateRoot
         var transactionDetails = TransactionDetails.Create(Id, description, amount, category, transactionType, date);
         var transaction = _transactions.Add(transactionDetails);
 
-        var balanceManager = CreateBalanceManager();
-        balanceManager.ApplyNewTransaction(this, amount, transactionType);
-
+        ApplyTransactionEffect(amount, transactionType);
         PublishBudgetEvaluationEvent(category);
 
         return transaction;
@@ -66,17 +60,8 @@ public class Account : AggregateRoot
         var transactionDetails = TransactionDetails.Create(Id, newDescription, newAmount, category, transactionType, transaction.Date);
         _transactions.Update(transactionId, transactionDetails);
 
-        var balanceManager = CreateBalanceManager();
-        var balanceUpdateStrategy = CreateUpdateStrategyFactory().Create(originalType, transactionType);
-
-        balanceManager.UpdateBalanceForEdit(
-            this,
-            originalAmount,
-            newAmount,
-            originalType,
-            transactionType,
-            balanceUpdateStrategy);
-
+        RevertTransactionEffect(originalAmount, originalType);
+        ApplyTransactionEffect(newAmount, transactionType);
         PublishBudgetEvaluationEvent(category);
     }
 
@@ -88,10 +73,8 @@ public class Account : AggregateRoot
 
     public void DeleteAccount()
     {
-        var balanceManager = CreateBalanceManager();
         _transactions.ForEach(transaction =>
-            balanceManager.RevertTransaction(this, transaction)
-        );
+            RevertTransactionEffect(transaction.Amount, (TransactionTypeEnum)transaction.TransactionTypeId));
 
         _transactions.Clear();
         SetAsDeleted();
@@ -100,15 +83,29 @@ public class Account : AggregateRoot
     public void DeleteTransaction(Guid transactionId)
     {
         var transaction = _transactions.GetById(transactionId);
-        var balanceManager = CreateBalanceManager();
 
-        balanceManager.RevertTransaction(this, transaction);
+        RevertTransactionEffect(transaction.Amount, (TransactionTypeEnum)transaction.TransactionTypeId);
         _transactions.Remove(transactionId);
     }
 
-    public void UpdateCurrentBalance(decimal amount)
+    private void ApplyTransactionEffect(decimal amount, TransactionTypeEnum transactionType)
     {
-        CurrentBalance += amount;
+        CurrentBalance += GetSignedAmount(amount, transactionType);
+    }
+
+    private void RevertTransactionEffect(decimal amount, TransactionTypeEnum transactionType)
+    {
+        CurrentBalance -= GetSignedAmount(amount, transactionType);
+    }
+
+    private static decimal GetSignedAmount(decimal amount, TransactionTypeEnum transactionType)
+    {
+        return transactionType switch
+        {
+            TransactionTypeEnum.INCOME => amount,
+            TransactionTypeEnum.EXPENSE => -amount,
+            _ => throw new DomainException("Transaction type is invalid")
+        };
     }
 
     private static void ValidateAccountName(string name)
@@ -127,10 +124,6 @@ public class Account : AggregateRoot
     {
         AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, UserId, category));
     }
-
-    private static IBalanceManager CreateBalanceManager() => new BalanceManager();
-
-    private static IBalanceUpdateStrategyFactory CreateUpdateStrategyFactory() => new BalanceUpdateStrategyFactory();
 
     // Constructor for EF Core
     protected Account()

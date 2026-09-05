@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimplePersonalFinance.API.Controllers.Base;
@@ -19,85 +19,83 @@ namespace SimplePersonalFinance.API.Controllers;
 [Authorize]
 public class AccountController(IMediator mediator, IAuthUserHandler authUserHandler, ILogger<AccountController> logger) : BaseController(logger, authUserHandler)
 {
-
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetAccountByIdQuery(id));
+        var result = await mediator.Send(new GetAccountByIdQuery(id), cancellationToken);
         return HandleResult(result);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetByUserId([FromQuery]GetByUserIdRequest request)
+    public async Task<IActionResult> GetByUserId([FromQuery] GetByUserIdRequest request, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
         var query = new GetAccountByUserIdQuery(userId, request.PageNumber, request.PageSize);
-        var result = await mediator.Send(query);
-
+        var result = await mediator.Send(query, cancellationToken);
         return HandleResult(result);
-
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(CreateAccountRequest request)
+    public async Task<IActionResult> Post(CreateAccountRequest request, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
         var command = new CreateAccountCommand(userId, request.AccountType, request.Name, request.InitialBalance);
-        var result = await mediator.Send(command);
-
+        var result = await mediator.Send(command, cancellationToken);
         return HandleResult(result);
-
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         ValidateIds(id);
-        var result = await mediator.Send(new RemoveAccountCommand(id));
+        var result = await mediator.Send(new RemoveAccountCommand(id), cancellationToken);
         return HandleResult(result);
     }
 
     [HttpGet("{id}/transactions")]
-    public async Task<IActionResult> GetTransactions(Guid id)
+    public async Task<IActionResult> GetTransactions(Guid id, CancellationToken cancellationToken)
     {
         ValidateIds(id);
-        var result = await mediator.Send(new GetAccountTransactionsQuery(id));
+        var result = await mediator.Send(new GetAccountTransactionsQuery(id), cancellationToken);
         return HandleResult(result);
     }
 
     [HttpPost("{id}/transactions")]
-    public async Task<IActionResult> PostTransaction(Guid id, CreateAccountTransactionRequest request)
+    public async Task<IActionResult> PostTransaction(Guid id, CreateAccountTransactionRequest request, CancellationToken cancellationToken)
     {
         ValidateIds(id);
-        var command = new CreateAccountTransactionCommand(id,
-                                                          request.CategoryId,
-                                                          request.TransactionTypeId,
-                                                          request.Description,
-                                                          request.Amount,
-                                                          request.Date);
+        var command = new CreateAccountTransactionCommand(
+            id,
+            request.CategoryId,
+            request.TransactionTypeId,
+            request.Description,
+            request.Amount,
+            request.Date);
 
-
-        var result = await mediator.Send(command);
-
+        var result = await mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
     [HttpPut("{id}/transactions/{transactionId}")]
-    public async Task<IActionResult> PutTransaction(Guid id, Guid transactionId, EditAccountTransactionRequest request)
+    public async Task<IActionResult> PutTransaction(Guid id, Guid transactionId, EditAccountTransactionRequest request, CancellationToken cancellationToken)
     {
         ValidateIds(id, transactionId);
-
-        var command = new EditAccountTransactionCommand(transactionId, id, request.Amount, request.Description, request.CategoryId, request.TransactionTypeId);
-        var result = await mediator.Send(command);
-
+        var command = new EditAccountTransactionCommand(
+            transactionId,
+            id,
+            request.Amount,
+            request.Description,
+            request.CategoryId,
+            request.TransactionTypeId);
+        var result = await mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
     [HttpDelete("{id}/transactions/{transactionId}")]
-    public async Task<IActionResult> DeleteTransaction(Guid id, Guid transactionId)
+    public async Task<IActionResult> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
     {
         ValidateIds(id, transactionId);
-        var result = await mediator.Send(new DeleteAccountTransactionCommand(transactionId, id));
+        var result = await mediator.Send(new DeleteAccountTransactionCommand(transactionId, id), cancellationToken);
         return HandleResult(result);
     }
 }

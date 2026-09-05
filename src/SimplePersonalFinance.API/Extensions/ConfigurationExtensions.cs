@@ -1,4 +1,4 @@
-﻿using HealthChecks.UI.Client;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -7,6 +7,7 @@ using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.API.Services;
 using SimplePersonalFinance.API.Services.Interfaces;
 using SimplePersonalFinance.Application.Extensions;
+using SimplePersonalFinance.Core.Interfaces.Services;
 using SimplePersonalFinance.Infrastructure.Data.Extensions;
 using SimplePersonalFinance.Infrastructure.Extensions;
 
@@ -67,7 +68,9 @@ public static class ConfigurationExtensions
                 });
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-        services.AddScoped<IAuthUserHandler, AuthUserHandler>();
+        services.AddScoped<AuthUserHandler>();
+        services.AddScoped<IAuthUserHandler>(provider => provider.GetRequiredService<AuthUserHandler>());
+        services.AddScoped<ICurrentUser>(provider => provider.GetRequiredService<AuthUserHandler>());
 
         return services;
     }
@@ -199,6 +202,4 @@ public static class ConfigurationExtensions
 
         return builder;
     }
-
-
 }

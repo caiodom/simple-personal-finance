@@ -1,86 +1,59 @@
-﻿using Moq;
+using Moq;
 using SimplePersonalFinance.Application.Commands.AccountCommands.EditTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.Exceptions;
-using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
+using SimplePersonalFinance.Core.Interfaces.Services;
 
 namespace SimplePersonalFinance.Test.Application.Command.AccountCommands;
 
 public class EditAccountTransactionCommandHandlerTests
 {
+    private readonly Guid _currentUserId = Guid.NewGuid();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
+    private readonly Mock<ICurrentUser> _currentUserMock;
     private readonly EditAccountTransactionCommandHandler _handler;
 
     public EditAccountTransactionCommandHandlerTests()
     {
         _accountRepositoryMock = new Mock<IAccountRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _currentUserMock = new Mock<ICurrentUser>();
         _unitOfWorkMock.Setup(uow => uow.Accounts).Returns(_accountRepositoryMock.Object);
-        _handler = new EditAccountTransactionCommandHandler(_unitOfWorkMock.Object);
+        _currentUserMock.SetupGet(user => user.UserId).Returns(_currentUserId);
+        _handler = new EditAccountTransactionCommandHandler(_unitOfWorkMock.Object, _currentUserMock.Object);
     }
 
     [Fact]
-    public async Task Handle_AccountNotFound_ShouldReturnError()
+    public async Task Handle_AccountNotFound_ShouldThrowEntityNotFound()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
-        var command = new EditAccountTransactionCommand(
-            transactionId,
-            accountId,
-            500m,
-            "Updated Description",
-            CategoryEnum.FOOD,
-            TransactionTypeEnum.EXPENSE);
+        var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync((Account)null);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync((Account?)null);
 
-        // Act & Assert
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
 
     [Fact]
     public async Task Handle_ValidUpdate_ShouldUpdateTransactionAndReturnSuccess()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
+        var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var transaction = account.AddTransaction("Initial Description", 300m, CategoryEnum.ENTERTAINMENT, TransactionTypeEnum.EXPENSE, DateTime.Now);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
-        // Create account with initial transaction
-        var account = new Account(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
-        var transaction = account.AddTransaction(
-            "Initial Description",
-            300m,
-            CategoryEnum.ENTERTAINMENT,
-            TransactionTypeEnum.EXPENSE,
-            DateTime.Now);
+        var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
 
-        // Set the transaction ID to match our test ID
-        // This reflection is needed because the Transaction ID is set internally when AddTransaction is called
-        typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
-
-        var command = new EditAccountTransactionCommand(
-            transactionId,
-            accountId,
-            500m,
-            "Updated Description",
-            CategoryEnum.FOOD,
-            TransactionTypeEnum.EXPENSE);
-
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync(account);
-
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
         Assert.Equal(500m, transaction.Amount);
@@ -92,46 +65,38 @@ public class EditAccountTransactionCommandHandlerTests
     [Fact]
     public async Task Handle_ChangeTransactionType_ShouldUpdateBalanceCorrectly()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
+        var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var transaction = account.AddTransaction("Initial Description", 300m, CategoryEnum.ENTERTAINMENT, TransactionTypeEnum.EXPENSE, DateTime.Now);
 
-        // Create account with initial transaction (expense of 300)
-        var account = new Account(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
-        var transaction = account.AddTransaction(
-            "Initial Description",
-            300m,
-            CategoryEnum.ENTERTAINMENT,
-            TransactionTypeEnum.EXPENSE,
-            DateTime.Now);
-
-        // Balance should be 700 after expense
         Assert.Equal(700m, account.CurrentBalance.Amount);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
-        // Set the transaction ID to match our test ID
-        typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
+        var command = new EditAccountTransactionCommand(transactionId, accountId, 300m, "Updated Description", CategoryEnum.SALARY, TransactionTypeEnum.INCOME);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
 
-        // Change to income with same amount
-        var command = new EditAccountTransactionCommand(
-            transactionId,
-            accountId,
-            300m,
-            "Updated Description",
-            CategoryEnum.SALARY,
-            TransactionTypeEnum.INCOME);
-
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync(account);
-
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
-        // Balance should now be 1300 (original 1000 + 300 instead of - 300)
         Assert.Equal(1300m, account.CurrentBalance.Amount);
         Assert.Equal((int)TransactionTypeEnum.INCOME, transaction.TransactionTypeId);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAccountBelongsToAnotherUser_ShouldThrowEntityNotFoundAndNotPersist()
+    {
+        var accountId = Guid.NewGuid();
+        var transactionId = Guid.NewGuid();
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Other User Account", 1000m);
+        var transaction = account.AddTransaction("Initial Description", 300m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
+
+        var command = new EditAccountTransactionCommand(transactionId, accountId, 500m, "Updated Description", CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 }

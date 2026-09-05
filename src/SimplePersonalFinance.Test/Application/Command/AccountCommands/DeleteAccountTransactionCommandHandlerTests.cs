@@ -1,117 +1,102 @@
-﻿using Moq;
+using Moq;
 using SimplePersonalFinance.Application.Commands.AccountCommands.RemoveTransaction;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.Exceptions;
-using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Data;
 using SimplePersonalFinance.Core.Interfaces.Data.Repositories;
+using SimplePersonalFinance.Core.Interfaces.Services;
 
 namespace SimplePersonalFinance.Test.Application.Command.AccountCommands;
 
 public class DeleteAccountTransactionCommandHandlerTests
 {
+    private readonly Guid _currentUserId = Guid.NewGuid();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
+    private readonly Mock<ICurrentUser> _currentUserMock;
     private readonly DeleteAccountTransactionCommandHandler _handler;
 
     public DeleteAccountTransactionCommandHandlerTests()
     {
         _accountRepositoryMock = new Mock<IAccountRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _currentUserMock = new Mock<ICurrentUser>();
         _unitOfWorkMock.Setup(uow => uow.Accounts).Returns(_accountRepositoryMock.Object);
-        _handler = new DeleteAccountTransactionCommandHandler(_unitOfWorkMock.Object);
+        _currentUserMock.SetupGet(user => user.UserId).Returns(_currentUserId);
+        _handler = new DeleteAccountTransactionCommandHandler(_unitOfWorkMock.Object, _currentUserMock.Object);
     }
 
     [Fact]
-    public async Task Handle_AccountNotFound_ShouldReturnError()
+    public async Task Handle_AccountNotFound_ShouldThrowEntityNotFound()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync((Account)null);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync((Account?)null);
 
-        // Act & Assert
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
 
     [Fact]
     public async Task Handle_ValidDelete_ShouldDeleteTransactionAndUpdateBalance()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
+        var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var transaction = account.AddTransaction("Test Transaction", 300m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
 
-        // Create account with initial transaction
-        var account = new Account(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
-        var transaction = account.AddTransaction(
-            "Test Transaction",
-            300m,
-            CategoryEnum.FOOD,
-            TransactionTypeEnum.EXPENSE,
-            DateTime.Now);
-
-        // Balance after expense should be 700
         Assert.Equal(700m, account.CurrentBalance.Amount);
-
-        // Set the transaction ID to match our test ID
-        typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync(account);
-
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
-        Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
-        Assert.Empty(account.Transactions.Where(x=>x.IsActive)); // Transaction should be removed
+        Assert.Equal(1000m, account.CurrentBalance.Amount);
+        Assert.Empty(account.Transactions.Where(x => x.IsActive));
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
     public async Task Handle_DeleteIncome_ShouldUpdateBalanceCorrectly()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
         var transactionId = Guid.NewGuid();
+        var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
+        var transaction = account.AddTransaction("Salary", 500m, CategoryEnum.SALARY, TransactionTypeEnum.INCOME, DateTime.Now);
 
-        // Create account with initial income transaction
-        var account = new Account(userId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
-        var transaction = account.AddTransaction(
-            "Salary",
-            500m,
-            CategoryEnum.SALARY,
-            TransactionTypeEnum.INCOME,
-            DateTime.Now);
-
-        // Balance after income should be 1500
         Assert.Equal(1500m, account.CurrentBalance.Amount);
-
-        // Set the transaction ID to match our test ID
-        typeof(Entity).GetProperty("Id").SetValue(transaction, transactionId);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
 
-        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId))
-            .ReturnsAsync(account);
-
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(1000m, account.CurrentBalance.Amount); // Balance should be back to original
+        Assert.Equal(1000m, account.CurrentBalance.Amount);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAccountBelongsToAnotherUser_ShouldThrowEntityNotFoundAndNotPersist()
+    {
+        var accountId = Guid.NewGuid();
+        var transactionId = Guid.NewGuid();
+        var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Other User Account", 1000m);
+        var transaction = account.AddTransaction("Test Transaction", 300m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
+        typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
+
+        var command = new DeleteAccountTransactionCommand(transactionId, accountId);
+        _accountRepositoryMock.Setup(r => r.GetAccountWithSpecificTransactionAsync(accountId, transactionId)).ReturnsAsync(account);
+
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 }

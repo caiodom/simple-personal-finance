@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Entities.Base;
@@ -35,16 +34,23 @@ public class AppDbContext : DbContext
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var domainEntities = ChangeTracker.Entries<AggregateRoot>()
-            .Where(entry => entry.Entity.DomainEvents != null && entry.Entity.DomainEvents.Any())
+            .Where(entry => entry.Entity.DomainEvents.Count > 0)
             .ToList();
 
         var domainEvents = domainEntities
-            .SelectMany(entry => entry.Entity.DomainEvents!)
+            .SelectMany(entry => entry.Entity.DomainEvents)
             .ToList();
+
+        if (domainEvents.Count == 0)
+            return await base.SaveChangesAsync(cancellationToken);
+
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
         await _dispatcher.DispatchAsync(domainEvents, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         domainEntities.ForEach(entry => entry.Entity.ClearDomainEvents());
 

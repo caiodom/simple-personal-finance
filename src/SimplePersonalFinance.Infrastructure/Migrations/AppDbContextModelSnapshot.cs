@@ -125,7 +125,13 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Budgets_UserId");
+
+                    b.HasIndex("UserId", "CategoryId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Budgets_UserId_CategoryId_Active")
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("Budgets", (string)null);
                 });
@@ -213,7 +219,8 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId", "IsActive", "Date")
+                        .HasDatabaseName("IX_Transactions_AccountId_IsActive_Date");
 
                     b.HasIndex("CategoryId");
 
@@ -369,6 +376,10 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                                 .HasColumnName("Email");
 
                             b1.HasKey("UserId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique()
+                                .HasDatabaseName("UX_Users_Email");
 
                             b1.ToTable("Users");
 

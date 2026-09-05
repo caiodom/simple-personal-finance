@@ -21,14 +21,19 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         CategoryEnum category,
         DateTime period,
         CancellationToken cancellationToken)
-        => await context.Transactions
+    {
+        var periodStart = new DateTime(period.Year, period.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var periodEnd = periodStart.AddMonths(1);
+
+        return await context.Transactions
             .Where(transaction => transaction.AccountId == accountId &&
-                                  transaction.Date.Month == period.Month &&
-                                  transaction.Date.Year == period.Year &&
+                                  transaction.Date >= periodStart &&
+                                  transaction.Date < periodEnd &&
                                   transaction.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE &&
                                   transaction.CategoryId == (int)category &&
                                   transaction.IsActive)
             .ToListAsync(cancellationToken);
+    }
 
     public async Task<(IReadOnlyList<Transaction> Items, int TotalItems)> GetAllByAccountIdAsync(
         Guid accountId,

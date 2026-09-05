@@ -40,7 +40,7 @@ public class CreateTransactionCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        Assert.Equal(1500m, account.CurrentBalance.Amount);
+        Assert.Equal(1500m, account.CurrentBalance);
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
@@ -58,7 +58,7 @@ public class CreateTransactionCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Data);
-        Assert.Equal(800m, account.CurrentBalance.Amount);
+        Assert.Equal(800m, account.CurrentBalance);
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }

@@ -70,7 +70,7 @@ public class EditAccountTransactionCommandHandlerTests
         var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
         var transaction = account.AddTransaction("Initial Description", 300m, CategoryEnum.ENTERTAINMENT, TransactionTypeEnum.EXPENSE, DateTime.Now);
 
-        Assert.Equal(700m, account.CurrentBalance.Amount);
+        Assert.Equal(700m, account.CurrentBalance);
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new EditAccountTransactionCommand(transactionId, accountId, 300m, "Updated Description", CategoryEnum.SALARY, TransactionTypeEnum.INCOME);
@@ -79,7 +79,7 @@ public class EditAccountTransactionCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(1300m, account.CurrentBalance.Amount);
+        Assert.Equal(1300m, account.CurrentBalance);
         Assert.Equal((int)TransactionTypeEnum.INCOME, transaction.TransactionTypeId);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }

@@ -1,6 +1,5 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 using SimplePersonalFinance.Core.Domain.Enums;
-using SimplePersonalFinance.Core.Domain.ValueObjects;
 using SimplePersonalFinance.Core.Interfaces.Domain.Strategies;
 
 namespace SimplePersonalFinance.Core.Domain.Strategies.BalanceUpdate;
@@ -9,39 +8,28 @@ public class TransactionTypeChangeStrategy : IBalanceUpdateStrategy
 {
     public void UpdateBalance(
         Account account,
-        Money originalValue,
-        Money newValue,
+        decimal originalValue,
+        decimal newValue,
         TransactionTypeEnum originalType,
         TransactionTypeEnum newType)
     {
-        ArgumentNullException.ThrowIfNull(originalValue, nameof(originalValue));
-        ArgumentNullException.ThrowIfNull(newValue, nameof(newValue));
-
         ReverseOriginalTransactionEffect(account, originalValue, originalType);
         ApplyNewTransactionEffect(account, newValue, newType);
     }
 
-    private void ReverseOriginalTransactionEffect(Account account, Money value, TransactionTypeEnum type)
+    private static void ReverseOriginalTransactionEffect(Account account, decimal value, TransactionTypeEnum type)
     {
-        if (IsIncome(type))
-            account.UpdateCurrentBalance(value.Scale(-1));
-
-        if (IsExpense(type))
+        if (type == TransactionTypeEnum.INCOME)
+            account.UpdateCurrentBalance(-value);
+        else if (type == TransactionTypeEnum.EXPENSE)
             account.UpdateCurrentBalance(value);
     }
 
-    private void ApplyNewTransactionEffect(Account account, Money value, TransactionTypeEnum type)
+    private static void ApplyNewTransactionEffect(Account account, decimal value, TransactionTypeEnum type)
     {
-        if (IsIncome(type))
+        if (type == TransactionTypeEnum.INCOME)
             account.UpdateCurrentBalance(value);
-
-        if (IsExpense(type))
-            account.UpdateCurrentBalance(value.Scale(-1));
+        else if (type == TransactionTypeEnum.EXPENSE)
+            account.UpdateCurrentBalance(-value);
     }
-
-    private bool IsIncome(TransactionTypeEnum type) =>
-        type == TransactionTypeEnum.INCOME;
-
-    private bool IsExpense(TransactionTypeEnum type) =>
-        type == TransactionTypeEnum.EXPENSE;
 }

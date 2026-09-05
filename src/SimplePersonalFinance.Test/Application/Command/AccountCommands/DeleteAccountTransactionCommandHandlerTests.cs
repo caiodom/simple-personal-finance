@@ -48,7 +48,7 @@ public class DeleteAccountTransactionCommandHandlerTests
         var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
         var transaction = account.AddTransaction("Test Transaction", 300m, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, DateTime.Now);
 
-        Assert.Equal(700m, account.CurrentBalance.Amount);
+        Assert.Equal(700m, account.CurrentBalance);
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
@@ -58,8 +58,8 @@ public class DeleteAccountTransactionCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(transactionId, result.Data);
-        Assert.Equal(1000m, account.CurrentBalance.Amount);
-        Assert.Empty(account.Transactions.Where(x => x.IsActive));
+        Assert.Equal(1000m, account.CurrentBalance);
+        Assert.DoesNotContain(account.Transactions, transaction => transaction.IsActive);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
@@ -71,7 +71,7 @@ public class DeleteAccountTransactionCommandHandlerTests
         var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
         var transaction = account.AddTransaction("Salary", 500m, CategoryEnum.SALARY, TransactionTypeEnum.INCOME, DateTime.Now);
 
-        Assert.Equal(1500m, account.CurrentBalance.Amount);
+        Assert.Equal(1500m, account.CurrentBalance);
         typeof(Entity).GetProperty("Id")!.SetValue(transaction, transactionId);
 
         var command = new DeleteAccountTransactionCommand(transactionId, accountId);
@@ -80,7 +80,7 @@ public class DeleteAccountTransactionCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(1000m, account.CurrentBalance.Amount);
+        Assert.Equal(1000m, account.CurrentBalance);
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 

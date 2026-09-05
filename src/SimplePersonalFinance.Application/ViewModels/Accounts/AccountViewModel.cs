@@ -1,4 +1,4 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities;
+using SimplePersonalFinance.Core.Domain.Entities;
 
 namespace SimplePersonalFinance.Application.ViewModels.Accounts;
 
@@ -25,13 +25,13 @@ public class AccountViewModel
 
     public static AccountViewModel MapToViewModel(Account account)
     {
-        return new(account.Id,
-                   account.UserId,
-                   account.AccountTypeId,
-                   account.Name,
-                   account.AccountType.Name,
-                   account.InitialBalance.Amount,
-                   account.CurrentBalance.Amount);
+        return new AccountViewModel(
+            account.Id,
+            account.UserId,
+            account.AccountTypeId,
+            account.Name,
+            account.AccountType.Name,
+            account.InitialBalance,
+            account.CurrentBalance);
     }
-
 }

@@ -1,12 +1,11 @@
-
-services:          
+services:
   spf-db:
     image: postgres:latest
     container_name: spf-db
     environment:
-      - POSTGRES_USER=spfuser
-      - POSTGRES_PASSWORD=spf@1234
-      - POSTGRES_DB=spfdb
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
     ports:
       - "5432:5432"
     volumes:
@@ -22,7 +21,7 @@ services:
     networks:
       - app-network
     depends_on:
-      - spf-db     
+      - spf-db
 
   spf-seq:
     image: datalust/seq:latest
@@ -51,7 +50,7 @@ services:
       - app-network
     depends_on:
       - spf-api
-      - cert-generator      
+      - cert-generator
 
   cert-generator:
     image: emberstack/openssl
@@ -60,28 +59,27 @@ services:
       - ./certs:/out
     command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /out/your_domain.key -out /out/your_domain.crt -subj "/CN=yourdomain.com"
     networks:
-      - app-network            
-
+      - app-network
 
   spf-api:
     build:
       context: ../src
       dockerfile: ./SimplePersonalFinance.API/Dockerfile
-    container_name: spf-api           
-    restart: always             
-    environment: 
+    container_name: spf-api
+    restart: always
+    environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__DefaultConnection: "Server=spf-db;Database=${POSTGRES_DB};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};"
+      Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
     networks:
-      - app-network    
+      - app-network
     depends_on:
       - spf-db
-                                 
 
 volumes:
   spf-db-data:
 
-
 networks:
   app-network:
-    driver: bridge  
+    driver: bridge

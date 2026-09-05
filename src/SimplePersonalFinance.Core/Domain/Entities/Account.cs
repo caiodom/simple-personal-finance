@@ -1,8 +1,7 @@
-﻿using SimplePersonalFinance.Core.Domain.Entities.Base;
+using SimplePersonalFinance.Core.Domain.Entities.Base;
 using SimplePersonalFinance.Core.Domain.Enums;
 using SimplePersonalFinance.Core.Domain.Events;
 using SimplePersonalFinance.Core.Domain.Exceptions;
-using SimplePersonalFinance.Core.Domain.Factories;
 using SimplePersonalFinance.Core.Domain.Services;
 using SimplePersonalFinance.Core.Domain.Strategies.BalanceUpdate;
 using SimplePersonalFinance.Core.Domain.ValueObjects;
@@ -16,8 +15,8 @@ public class Account : AggregateRoot
     public Guid UserId { get; private set; }
     public int AccountTypeId { get; private set; }
     public string Name { get; private set; }
-    public Money InitialBalance { get; private set; }
-    public Money CurrentBalance { get; private set; }
+    public decimal InitialBalance { get; private set; }
+    public decimal CurrentBalance { get; private set; }
 
     private readonly TransactionCollection _transactions;
     public IReadOnlyCollection<Transaction> Transactions => _transactions.Transactions;
@@ -25,12 +24,13 @@ public class Account : AggregateRoot
     public Account(Guid userId, AccountTypeEnum accountTypeId, string name, decimal initialBalance)
     {
         ValidateAccountName(name);
+        ValidateInitialBalance(initialBalance);
 
         UserId = userId;
         AccountTypeId = (int)accountTypeId;
         Name = name;
-
-        InitializeBalances(initialBalance);
+        InitialBalance = initialBalance;
+        CurrentBalance = initialBalance;
         _transactions = new TransactionCollection();
     }
 
@@ -44,9 +44,8 @@ public class Account : AggregateRoot
         var transactionDetails = TransactionDetails.Create(Id, description, amount, category, transactionType, date);
         var transaction = _transactions.Add(transactionDetails);
 
-        var money = MoneyFactory.Create(amount);
         var balanceManager = CreateBalanceManager();
-        balanceManager.ApplyNewTransaction(this, money, transactionType);
+        balanceManager.ApplyNewTransaction(this, amount, transactionType);
 
         PublishBudgetEvaluationEvent(category);
 
@@ -72,8 +71,8 @@ public class Account : AggregateRoot
 
         balanceManager.UpdateBalanceForEdit(
             this,
-            MoneyFactory.Create(originalAmount),
-            MoneyFactory.Create(newAmount),
+            originalAmount,
+            newAmount,
             originalType,
             transactionType,
             balanceUpdateStrategy);
@@ -107,23 +106,21 @@ public class Account : AggregateRoot
         _transactions.Remove(transactionId);
     }
 
-    public void UpdateCurrentBalance(Money amount)
+    public void UpdateCurrentBalance(decimal amount)
     {
-        ArgumentNullException.ThrowIfNull(amount, nameof(amount));
-        CurrentBalance = CurrentBalance.Add(amount);
+        CurrentBalance += amount;
     }
 
-    private void ValidateAccountName(string name)
+    private static void ValidateAccountName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Account name cannot be empty");
     }
 
-    private void InitializeBalances(decimal initialBalance)
+    private static void ValidateInitialBalance(decimal initialBalance)
     {
-        var initialBalanceResult = MoneyFactory.Create(initialBalance);
-        InitialBalance = initialBalanceResult;
-        CurrentBalance = MoneyFactory.Create(initialBalance);
+        if (initialBalance < 0)
+            throw new DomainException("Initial balance cannot be negative");
     }
 
     private void PublishBudgetEvaluationEvent(CategoryEnum category)
@@ -131,9 +128,9 @@ public class Account : AggregateRoot
         AddDomainEvent(new BudgetEvaluationRequestedDomainEvent(Id, UserId, category));
     }
 
-    private IBalanceManager CreateBalanceManager() => new BalanceManager();
+    private static IBalanceManager CreateBalanceManager() => new BalanceManager();
 
-    private IBalanceUpdateStrategyFactory CreateUpdateStrategyFactory() => new BalanceUpdateStrategyFactory();
+    private static IBalanceUpdateStrategyFactory CreateUpdateStrategyFactory() => new BalanceUpdateStrategyFactory();
 
     // Constructor for EF Core
     protected Account()
@@ -141,7 +138,7 @@ public class Account : AggregateRoot
         _transactions = new TransactionCollection();
     }
 
-    // EF Relationships
+    // EF relationships
     public AccountType AccountType { get; }
     public User User { get; }
 }

@@ -16,6 +16,8 @@ namespace SimplePersonalFinance.API.Extensions;
 
 public static class ConfigurationExtensions
 {
+    private const string CorsPolicyName = "CorsPolicy";
+
     public static WebApplicationBuilder AddBuilderConfigurations(this WebApplicationBuilder builder)
     {
         builder.AddSettingsConfigurations()
@@ -96,7 +98,7 @@ public static class ConfigurationExtensions
         app.UseHttpsRedirection();
         app.UseApiMiddlewares();
 
-        app.UseCors("CorsPolicy");
+        app.UseCors(CorsPolicyName);
         app.UseRequestLogging();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -120,13 +122,35 @@ public static class ConfigurationExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        var allowedOrigins = configuration
+            .GetSection("Cors:AllowedOrigins")
+            .GetChildren()
+            .Select(section => section.Value?.Trim().TrimEnd('/'))
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .Select(origin => origin!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (allowedOrigins.Any(origin => string.Equals(origin, "*", StringComparison.Ordinal)))
+            throw new InvalidOperationException("Wildcard CORS origins are not allowed. Configure explicit Cors:AllowedOrigins values.");
+
+        foreach (var origin in allowedOrigins)
+        {
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new InvalidOperationException($"Invalid CORS origin '{origin}'. Origins must be absolute HTTP or HTTPS URLs.");
+            }
+        }
+
         services.AddCors(options =>
         {
-            options.AddPolicy("CorsPolicy", builder =>
+            options.AddPolicy(CorsPolicyName, policy =>
             {
-                builder
-                    .WithOrigins(configuration.GetSection("AllowedHosts").Value)
-                    .AllowAnyMethod()
+                if (allowedOrigins.Length > 0)
+                    policy.WithOrigins(allowedOrigins);
+
+                policy.AllowAnyMethod()
                     .AllowAnyHeader();
             });
         });

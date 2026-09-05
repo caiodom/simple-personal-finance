@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY ["SimplePersonalFinance.API/SimplePersonalFinance.API.csproj", "SimplePersonalFinance.API/"]
@@ -17,7 +17,7 @@ RUN dotnet publish "SimplePersonalFinance.API/SimplePersonalFinance.API.csproj" 
     --no-restore \
     /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 80
 

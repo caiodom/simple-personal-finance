@@ -13,7 +13,7 @@ public class GetBudgetByIdQueryHandler(
 {
     public async Task<ResultViewModel<BudgetViewModel>> Handle(GetBudgetByIdQuery request, CancellationToken cancellationToken)
     {
-        var budget = await budgets.GetByIdAsync(request.Id);
+        var budget = await budgets.GetByIdAsync(request.Id, cancellationToken);
 
         if (budget is null || budget.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Budget", request.Id);

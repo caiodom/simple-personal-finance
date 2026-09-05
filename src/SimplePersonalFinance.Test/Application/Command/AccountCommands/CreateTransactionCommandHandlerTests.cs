@@ -36,7 +36,7 @@ public class CreateTransactionCommandHandlerTests
         var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
         var command = new CreateAccountTransactionCommand(accountId, CategoryEnum.SALARY, TransactionTypeEnum.INCOME, "Salary", 500m, DateTime.Now);
 
-        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
+        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -44,7 +44,7 @@ public class CreateTransactionCommandHandlerTests
         Assert.NotEqual(Guid.Empty, result.Data);
         Assert.Equal(1500m, account.CurrentBalance);
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class CreateTransactionCommandHandlerTests
         var account = new Account(_currentUserId, AccountTypeEnum.CHECKING, "Test Account", 1000m);
         var command = new CreateAccountTransactionCommand(accountId, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, "Groceries", 200m, DateTime.Now);
 
-        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
+        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync(account);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -62,7 +62,7 @@ public class CreateTransactionCommandHandlerTests
         Assert.NotEqual(Guid.Empty, result.Data);
         Assert.Equal(800m, account.CurrentBalance);
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Once);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class CreateTransactionCommandHandlerTests
         var accountId = Guid.NewGuid();
         var command = new CreateAccountTransactionCommand(accountId, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, "Groceries", 200m, DateTime.Now);
 
-        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync((Account?)null);
+        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync((Account?)null);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
     }
@@ -83,10 +83,10 @@ public class CreateTransactionCommandHandlerTests
         var account = new Account(Guid.NewGuid(), AccountTypeEnum.CHECKING, "Other User Account", 1000m);
         var command = new CreateAccountTransactionCommand(accountId, CategoryEnum.FOOD, TransactionTypeEnum.EXPENSE, "Groceries", 200m, DateTime.Now);
 
-        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
+        _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync(account);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
         _accountRepositoryMock.Verify(r => r.AddAccountTransaction(It.IsAny<Transaction>()), Times.Never);
-        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -22,7 +22,7 @@ public class ResourceOwnershipQueryTests
         var accountRepository = new Mock<IAccountRepository>();
         var currentUser = new Mock<ICurrentUser>();
 
-        accountRepository.Setup(repository => repository.GetByIdAsync(accountId)).ReturnsAsync(account);
+        accountRepository.Setup(repository => repository.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync(account);
         currentUser.SetupGet(user => user.UserId).Returns(currentUserId);
 
         var handler = new GetAccountByIdQueryHandler(accountRepository.Object, currentUser.Object);
@@ -39,7 +39,7 @@ public class ResourceOwnershipQueryTests
         var budgetRepository = new Mock<IBudgetRepository>();
         var currentUser = new Mock<ICurrentUser>();
 
-        budgetRepository.Setup(repository => repository.GetByIdAsync(budgetId)).ReturnsAsync(budget);
+        budgetRepository.Setup(repository => repository.GetByIdAsync(budgetId, CancellationToken.None)).ReturnsAsync(budget);
         currentUser.SetupGet(user => user.UserId).Returns(currentUserId);
 
         var handler = new GetBudgetByIdQueryHandler(budgetRepository.Object, currentUser.Object);
@@ -59,8 +59,8 @@ public class ResourceOwnershipQueryTests
         var accountRepository = new Mock<IAccountRepository>();
         var currentUser = new Mock<ICurrentUser>();
 
-        transactionRepository.Setup(repository => repository.GetByIdAsync(transactionId)).ReturnsAsync(transaction);
-        accountRepository.Setup(repository => repository.GetByIdAsync(accountId)).ReturnsAsync(account);
+        transactionRepository.Setup(repository => repository.GetByIdAsync(transactionId, CancellationToken.None)).ReturnsAsync(transaction);
+        accountRepository.Setup(repository => repository.GetByIdAsync(accountId, CancellationToken.None)).ReturnsAsync(account);
         currentUser.SetupGet(user => user.UserId).Returns(currentUserId);
 
         var handler = new GetTransactionByIdQueryHandler(
@@ -83,6 +83,8 @@ public class ResourceOwnershipQueryTests
         var handler = new GetUserQueryHandler(userRepository.Object, currentUser.Object);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() => handler.Handle(new GetUserQuery(requestedUserId), CancellationToken.None));
-        userRepository.Verify(repository => repository.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
+        userRepository.Verify(
+            repository => repository.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

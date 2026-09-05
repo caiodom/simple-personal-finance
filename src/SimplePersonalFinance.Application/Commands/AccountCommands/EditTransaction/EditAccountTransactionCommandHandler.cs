@@ -14,13 +14,16 @@ public class EditAccountTransactionCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(EditAccountTransactionCommand request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetAccountWithSpecificTransactionAsync(request.AccountId, request.Id);
+        var account = await accounts.GetAccountWithSpecificTransactionAsync(
+            request.AccountId,
+            request.Id,
+            cancellationToken);
 
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.AccountId);
 
         account.EditTransaction(request.Id, request.Amount, request.Description, request.CategoryId, request.TransactionTypeId);
-        await uow.SaveChangesAsync();
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(request.Id, "Transaction updated successfully");
     }

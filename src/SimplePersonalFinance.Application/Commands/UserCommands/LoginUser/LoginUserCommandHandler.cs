@@ -7,11 +7,13 @@ using SimplePersonalFinance.Core.Interfaces.Services;
 
 namespace SimplePersonalFinance.Application.Commands.UserCommands.LoginUser;
 
-public class LoginUserCommandHandler(IAuthService authService, IUserRepository users) : IRequestHandler<LoginUserCommand, ResultViewModel<LoginUserViewModel>>
+public class LoginUserCommandHandler(
+    IAuthService authService,
+    IUserRepository users) : IRequestHandler<LoginUserCommand, ResultViewModel<LoginUserViewModel>>
 {
     public async Task<ResultViewModel<LoginUserViewModel>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await users.GetByEmailAsync(request.Email);
+        var user = await users.GetByEmailAsync(request.Email, cancellationToken);
 
         if (user is null || !authService.VerifyPassword(request.Password, user.PasswordHash))
             throw new BusinessRuleViolationException(

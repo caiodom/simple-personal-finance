@@ -13,7 +13,8 @@ public class GetAccountByUserIdQueryHandler(IAccountRepository accounts) : IRequ
         var (itemsFromRepository, totalItems) = await accounts.GetAccountsByUserIdAsync(
             request.UserId,
             request.PageNumber,
-            request.PageSize);
+            request.PageSize,
+            cancellationToken);
 
         var items = itemsFromRepository
             .Select(AccountViewModel.MapToViewModel)

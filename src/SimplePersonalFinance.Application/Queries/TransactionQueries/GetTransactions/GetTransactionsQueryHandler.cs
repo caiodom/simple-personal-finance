@@ -15,14 +15,15 @@ public class GetTransactionsQueryHandler(
 {
     public async Task<ResultViewModel<PaginatedResult<TransactionViewModel>>> Handle(GetTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetByIdAsync(request.AccountId);
+        var account = await accounts.GetByIdAsync(request.AccountId, cancellationToken);
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.AccountId);
 
         var (itemsFromRepository, totalItems) = await transactions.GetAllByAccountIdAsync(
             request.AccountId,
             request.PageNumber,
-            request.PageSize);
+            request.PageSize,
+            cancellationToken);
 
         var items = itemsFromRepository
             .Select(TransactionViewModel.ToViewModel)

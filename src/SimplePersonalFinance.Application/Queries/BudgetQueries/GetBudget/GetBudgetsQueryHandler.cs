@@ -13,7 +13,8 @@ public class GetBudgetsQueryHandler(IBudgetRepository budgets) : IRequestHandler
         var (itemsFromRepository, totalItems) = await budgets.GetAllByUserIdAsync(
             request.UserId,
             request.PageNumber,
-            request.PageSize);
+            request.PageSize,
+            cancellationToken);
 
         var items = itemsFromRepository
             .Select(BudgetViewModel.FromEntity)

@@ -14,14 +14,14 @@ public class CreateAccountTransactionCommandHandler(
 {
     public async Task<ResultViewModel<Guid>> Handle(CreateAccountTransactionCommand request, CancellationToken cancellationToken)
     {
-        var account = await accounts.GetByIdAsync(request.AccountId);
+        var account = await accounts.GetByIdAsync(request.AccountId, cancellationToken);
 
         if (account is null || account.UserId != currentUser.UserId)
             throw new EntityNotFoundException("Account", request.AccountId);
 
         var transaction = account.AddTransaction(request.Description, request.Amount, request.CategoryId, request.TransactionTypeId, request.Date);
         accounts.AddAccountTransaction(transaction);
-        await uow.SaveChangesAsync();
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ResultViewModel<Guid>.Success(transaction.Id, "Transaction created successfully");
     }

@@ -8,16 +8,19 @@ namespace SimplePersonalFinance.Infrastructure.Data.Repositories;
 
 public class TransactionRepository(AppDbContext context) : ITransactionRepository
 {
-    public async Task<Transaction?> GetByIdAsync(Guid id)
+    public async Task<Transaction?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => await context.Transactions
             .Include(transaction => transaction.Category)
             .Include(transaction => transaction.TransactionType)
-            .SingleOrDefaultAsync(transaction => transaction.Id == id && transaction.IsActive);
+            .SingleOrDefaultAsync(
+                transaction => transaction.Id == id && transaction.IsActive,
+                cancellationToken);
 
     public async Task<List<Transaction>> GetCategoryExpensesByAccountAndPeriod(
         Guid accountId,
         CategoryEnum category,
-        DateTime period)
+        DateTime period,
+        CancellationToken cancellationToken)
         => await context.Transactions
             .Where(transaction => transaction.AccountId == accountId &&
                                   transaction.Date.Month == period.Month &&
@@ -25,12 +28,13 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
                                   transaction.TransactionTypeId == (int)TransactionTypeEnum.EXPENSE &&
                                   transaction.CategoryId == (int)category &&
                                   transaction.IsActive)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
     public async Task<(IReadOnlyList<Transaction> Items, int TotalItems)> GetAllByAccountIdAsync(
         Guid accountId,
         int pageNumber,
-        int pageSize)
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var query = context.Transactions
             .AsNoTracking()
@@ -38,13 +42,13 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
             .Include(transaction => transaction.Category)
             .Where(transaction => transaction.AccountId == accountId && transaction.IsActive);
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(transaction => transaction.Date)
             .ThenBy(transaction => transaction.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return (items, totalItems);
     }

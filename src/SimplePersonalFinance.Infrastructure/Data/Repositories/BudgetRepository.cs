@@ -13,7 +13,7 @@ public class BudgetRepository(AppDbContext context) : IBudgetRepository
     public async Task<Budget?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => await context.Budgets
             .Include(budget => budget.Category)
-            .SingleOrDefaultAsync(budget => budget.Id == id, cancellationToken);
+            .SingleOrDefaultAsync(budget => budget.Id == id && budget.IsActive, cancellationToken);
 
     public async Task<Budget?> GetByUserAndCategoryAsync(
         Guid userId,
@@ -22,7 +22,9 @@ public class BudgetRepository(AppDbContext context) : IBudgetRepository
         => await context.Budgets
             .Include(budget => budget.Category)
             .SingleOrDefaultAsync(
-                budget => budget.UserId == userId && budget.CategoryId == categoryId,
+                budget => budget.UserId == userId &&
+                          budget.CategoryId == categoryId &&
+                          budget.IsActive,
                 cancellationToken);
 
     public async Task<(IReadOnlyList<Budget> Items, int TotalItems)> GetAllByUserIdAsync(

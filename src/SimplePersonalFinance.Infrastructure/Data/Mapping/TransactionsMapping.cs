@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SimplePersonalFinance.Core.Domain.Entities;
 
@@ -10,33 +10,31 @@ public class TransactionsMapping : IEntityTypeConfiguration<Transaction>
     {
         builder.ToTable("Transactions");
 
-        builder.HasKey(t => t.Id);
+        builder.HasKey(transaction => transaction.Id);
 
-        builder.Property(t => t.Description)
+        builder.Property(transaction => transaction.Description)
             .IsRequired()
             .HasMaxLength(350);
 
-
-        builder.Property(t => t.Amount)
+        builder.Property(transaction => transaction.Amount)
             .HasColumnType("decimal(18,2)");
 
-        builder.HasOne(t => t.Account)
-            .WithMany(a => a.Transactions)
-            .HasForeignKey(t => t.AccountId)
+        builder.HasIndex(transaction => new { transaction.AccountId, transaction.IsActive, transaction.Date })
+            .HasDatabaseName("IX_Transactions_AccountId_IsActive_Date");
+
+        builder.HasOne(transaction => transaction.Account)
+            .WithMany(account => account.Transactions)
+            .HasForeignKey(transaction => transaction.AccountId)
             .IsRequired();
-       
 
-        builder.HasOne(t => t.Category)
-            .WithMany(c => c.Transactions)
-            .HasForeignKey(t => t.CategoryId)
+        builder.HasOne(transaction => transaction.Category)
+            .WithMany(category => category.Transactions)
+            .HasForeignKey(transaction => transaction.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t=>t.TransactionType)
-            .WithMany(a => a.Transactions)
-            .HasForeignKey(t => t.TransactionTypeId)
+        builder.HasOne(transaction => transaction.TransactionType)
+            .WithMany(type => type.Transactions)
+            .HasForeignKey(transaction => transaction.TransactionTypeId)
             .OnDelete(DeleteBehavior.Restrict);
-
-
-
     }
 }

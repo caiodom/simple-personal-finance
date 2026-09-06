@@ -44,6 +44,19 @@ public class ModelIntegrityTests
             transactionIndex.Properties.Select(property => property.Name));
     }
 
+    [Fact]
+    public void UserBirthday_ShouldMapToPostgreSqlDate()
+    {
+        using var context = CreateContext();
+
+        var userEntity = context.Model.FindEntityType(typeof(User));
+        Assert.NotNull(userEntity);
+
+        var birthdayProperty = userEntity.FindProperty(nameof(User.BirthdayDate));
+        Assert.NotNull(birthdayProperty);
+        Assert.Equal("date", birthdayProperty.GetColumnType());
+    }
+
     private static AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

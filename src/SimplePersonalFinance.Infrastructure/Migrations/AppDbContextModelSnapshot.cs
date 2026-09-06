@@ -270,7 +270,7 @@ namespace SimplePersonalFinance.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("BirthdayDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

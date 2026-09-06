@@ -81,6 +81,12 @@ services:
     depends_on:
       spf-migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error http://localhost:80/api/health/ready > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
     networks:
       - app-network
 
@@ -97,7 +103,7 @@ services:
       cert-generator:
         condition: service_completed_successfully
       spf-api:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
 

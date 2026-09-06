@@ -21,6 +21,11 @@ RUN dotnet publish "SimplePersonalFinance.API/SimplePersonalFinance.API.csproj" 
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 80
 
 COPY --from=build /app/publish .

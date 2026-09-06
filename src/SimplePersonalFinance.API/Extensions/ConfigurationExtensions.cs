@@ -1,9 +1,11 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Serilog;
 using SimplePersonalFinance.API.ExceptionHandling;
 using SimplePersonalFinance.API.Filters;
+using SimplePersonalFinance.API.HealthChecks;
 using SimplePersonalFinance.API.Middlewares;
 using SimplePersonalFinance.API.Services;
 using SimplePersonalFinance.API.Services.Interfaces;
@@ -102,7 +104,7 @@ public static class ConfigurationExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseHealthChecks()
+        app.MapHealthChecks()
             .MapControllers();
 
         return app;
@@ -157,7 +159,10 @@ public static class ConfigurationExtensions
 
     private static IServiceCollection AddHealthCheck(this IServiceCollection services)
     {
-        services.AddHealthChecks();
+        services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
+            .AddCheck<DatabaseHealthCheck>("postgresql", tags: ["ready"]);
+
         return services;
     }
 
@@ -184,10 +189,23 @@ public static class ConfigurationExtensions
         return services;
     }
 
-    private static WebApplication UseHealthChecks(this WebApplication app)
+    private static WebApplication MapHealthChecks(this WebApplication app)
     {
-        app.UseHealthChecks("/api/health", new HealthCheckOptions
+        app.MapHealthChecks("/api/health/live", new HealthCheckOptions
         {
+            Predicate = registration => registration.Tags.Contains("live"),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.MapHealthChecks("/api/health/ready", new HealthCheckOptions
+        {
+            Predicate = registration => registration.Tags.Contains("ready"),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.MapHealthChecks("/api/health", new HealthCheckOptions
+        {
+            Predicate = registration => registration.Tags.Contains("ready"),
             ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
         });
 

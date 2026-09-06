@@ -16,6 +16,10 @@ public class UserMapping : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(150);
 
+        builder.Property(user => user.BirthdayDate)
+            .HasColumnType("date")
+            .IsRequired();
+
         builder.OwnsOne(user => user.Email, email =>
         {
             email.Property(value => value.Value)
